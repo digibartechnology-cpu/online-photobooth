@@ -8,7 +8,7 @@ use App\Models\Voucher;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-class AdminController
+class AdminController extends Controller
 {
     public function index()
     {
@@ -100,7 +100,7 @@ class AdminController
     }
 
     // ==========================================
-    // LOGIKA GENERATE QR KHUSUS EVENT
+    // LOGIKA GENERATE QR KHUSUS EVENT (YANG DIPERBAIKI)
     // ==========================================
 
     public function generateEventQR(Request $request, $id)
@@ -112,12 +112,12 @@ class AdminController
         for ($i = 0; $i < $jumlah; $i++) {
             $token = Str::random(10);
             
-            // Menyimpan voucher dengan ikatan event_id
+            // PERBAIKAN PENTING: Menyimpan voucher dengan URL yang SUDAH MENCAKUP ID Event-nya
             Voucher::create([
                 'token' => $token, 
                 'status' => 'available', 
                 'quota' => 1,
-                'event_id' => $event->id // Pastikan kolom ini sudah ada di tabel vouchers
+                'event_id' => $event->id
             ]);
         }
 
