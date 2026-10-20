@@ -13,6 +13,8 @@ use App\Models\Event; // <-- Wajib ditambahkan agar welcome.blade.php bisa memba
 // 1. ALUR TAMU / PENGUNJUNG (PUBLIK)
 // ==========================================
 
+Route::get('/scan', [GuestController::class, 'scan']);
+
 // Halaman Utama: Pintu Masuk & Pilih Event
 Route::get('/', function () {
     $events = Event::orderBy('created_at', 'desc')->get();
