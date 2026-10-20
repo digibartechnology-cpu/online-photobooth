@@ -30,45 +30,63 @@ class GuestController
         return view('guest.portal', compact('events'));
     }
 
-    // 2. Halaman Scan QR Acara Spesifik
-    public function scan($id)
+    // 2. Halaman Scan QR Acara Spesifik (Diperbarui jadi Super Efisien)
+    public function scan(Request $request, $id)
     {
-        $event = Event::findOrFail($id);
+        $event = \App\Models\Event::findOrFail($id);
+
+        // LOGIKA BARU: Jika URL mengandung token (Artinya tamu scan QR Code pakai HP sendiri)
+        if ($request->has('token')) {
+            $token = $request->token;
+            $voucher = \App\Models\Voucher::where('token', $token)->where('event_id', $id)->first();
+
+            // Validasi Token
+            if (!$voucher) {
+                return redirect('/')->with('error', 'Silang Merah! QR Code tidak valid untuk acara ini.');
+            }
+            if ($voucher->status !== 'available') {
+                return redirect('/')->with('error', 'QR Code sudah hangus / pernah digunakan!');
+            }
+
+            // Buka gembok sesi untuk HP tamu ini
+            session(['active_token' => $token, 'event_id' => $id]);
+
+            // BYPASS! Langsung lompat ke halaman isi nama tanpa buka web scanner lagi
+            return redirect('/isi-nama');
+        }
+
+        // LOGIKA LAMA: Jika dibuka tanpa token (Misal: Tablet Kiosk di depan pintu)
+        $hariIni = \Carbon\Carbon::now('Asia/Jakarta');
         
-        $hariIni = Carbon::now('Asia/Jakarta');
-        
-        // Halang akses secara terus jika acara telah tamat tempoh
-        if (Carbon::parse($event->waktu_tutup, 'Asia/Jakarta')->endOfDay()->lessThan($hariIni)) {
-            return redirect('/')->with('error', 'Maaf, acara ini telah kedaluwarsa dan ditutup.');
+        // Halang akses jika acara telah tamat
+        if (\Carbon\Carbon::parse($event->waktu_tutup, 'Asia/Jakarta')->endOfDay() < $hariIni) {
+            return redirect('/')->with('error', 'Maaf, acara ini telah ditutup.');
         }
 
         return view('guest.scan', compact('event'));
     }
 
-    // 2.5 Proses Pengesahan Scan QR dari Kamera
     public function validasiScan(Request $request, $id)
-    {
-        $token = $request->token;
-        
-        // Cari baucar/tiket yang sepadan dengan token DAN acara ini
-        $voucher = \App\Models\Voucher::where('token', $token)
-                        ->where('event_id', $id)
-                        ->first();
+{
+    $token = $request->token;
+    $voucher = Voucher::where('token', $token)->where('event_id', $id)->first();
 
-        if (!$voucher) {
-            return response()->json(['status' => 'error', 'message' => 'Sistem menolak! Kod QR tidak dijumpai atau salah acara.']);
-        }
-        
-        if ($voucher->status !== 'available') {
-            return response()->json(['status' => 'error', 'message' => 'Maaf, Kod QR ini telah digunakan atau hangus!']);
-        }
-
-        // Buka sesi studio untuk tetamu ini
-        session(['active_token' => $token, 'event_id' => $id]);
-
-        // Berikan isyarat berjaya ke frontend untuk pergi ke halaman isi nama automatik
-        return response()->json(['status' => 'success', 'redirect' => url('/isi-nama')]);
+    if (!$voucher) {
+        return response()->json(['status' => 'error', 'message' => 'QR Code ini bukan untuk acara ini.']);
     }
+    if ($voucher->status !== 'available') {
+        return response()->json(['status' => 'error', 'message' => 'QR Code sudah hangus / pernah digunakan!']);
+    }
+
+    // Buka gembok sesi studio untuk tamu
+    session(['active_token' => $token, 'event_id' => $id]);
+
+    // WAJIB ADA: Mengirim perintah redirect ke frontend
+    return response()->json([
+        'status' => 'success',
+        'redirect' => '/isi-nama'
+    ]);
+}
 
     // 3. Halaman Input Nama
     public function askName()
