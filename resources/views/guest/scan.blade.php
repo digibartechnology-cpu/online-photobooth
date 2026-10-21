@@ -67,7 +67,9 @@
         const fileInput = document.getElementById('qr-upload');
         const btnUpload = document.getElementById('btn-upload');
         
-        let html5Qrcode; let isCameraRunning = false; let isProcessing = false;
+        let html5Qrcode; 
+        let isCameraRunning = false; 
+        let isProcessing = false;
 
         function showNotification(message, isSuccess, isProcessingState = false) {
             resultBox.classList.remove('hidden');
@@ -97,14 +99,20 @@
         function startCamera() {
             if (!html5Qrcode) { html5Qrcode = new Html5Qrcode("reader"); }
             
-            // PERBAIKAN: Hanya gunakan setting standar agar tidak merusak fokus kamera HP
             const cameraConfig = { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 }
+                fps: 15, // Sedikit dipercepat agar lebih responsif
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    // Kotak dinamis (80% layar) agar autofokus HP bekerja optimal
+                    let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                    let size = Math.floor(minEdgeSize * 0.8);
+                    return { width: size, height: size };
+                },
+                aspectRatio: 1.0,
+                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] // Paksa hanya baca QR agar tidak lemot
             };
 
-            // PERBAIKAN: Memaksa browser HP untuk membuka kamera belakang (environment)
-            html5Qrcode.start({ facingMode: { exact: "environment" } }, cameraConfig, (decodedText) => {
+            // Gunakan "environment" tanpa exact agar kompatibel dengan semua merk HP
+            html5Qrcode.start({ facingMode: "environment" }, cameraConfig, (decodedText) => {
                 if (isProcessing) return; 
                 isProcessing = true;
                 
@@ -118,9 +126,9 @@
             })
             .then(() => { isCameraRunning = true; })
             .catch(err => { 
-                console.log("Gagal akses kamera belakang, mencoba kamera default...", err);
-                // Fallback aman jika dibuka di Laptop/PC yang tidak punya kamera "environment"
-                html5Qrcode.start({ facingMode: "environment" }, cameraConfig, (decodedText) => {
+                console.log("Gagal akses kamera belakang, mencoba mode bebas...", err);
+                // Fallback terakhir jika HP benar-benar menolak mode environment
+                html5Qrcode.start({ facingMode: "user" }, cameraConfig, (decodedText) => {
                     if (isProcessing) return; isProcessing = true;
                     if (isCameraRunning && html5Qrcode.getState() === 2) { html5Qrcode.pause(); } 
                     showNotification("QR Terbaca! Memvalidasi...", false, true);
@@ -141,7 +149,7 @@
             showNotification("Menganalisis kode QR...", false, true);
 
             try {
-                if (isCameraRunning) { await html5Qrcode.stop(); isCameraRunning = false; }
+                if (isCameraRunning && html5Qrcode.getState() === 2) { await html5Qrcode.stop(); isCameraRunning = false; }
                 const decodedText = await html5Qrcode.scanFile(file, true);
                 let extractedToken = decodedText;
                 try { extractedToken = new URL(decodedText).searchParams.get("token") || decodedText; } catch(e) { }
@@ -176,7 +184,7 @@
             })
             .then(async data => {
                 if (data.status === 'success') {
-                    if (isCameraRunning && html5Qrcode) { try { await html5Qrcode.stop(); } catch(e) {} }
+                    if (isCameraRunning && html5Qrcode && html5Qrcode.getState() === 2) { try { await html5Qrcode.stop(); } catch(e) {} }
                     showNotification("Voucher Valid! 🎉", true);
                     setTimeout(() => window.location.href = data.redirect, 800);
                 } else {
