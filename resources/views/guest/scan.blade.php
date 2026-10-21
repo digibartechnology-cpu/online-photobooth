@@ -97,17 +97,14 @@
         function startCamera() {
             if (!html5Qrcode) { html5Qrcode = new Html5Qrcode("reader"); }
             
-            // UPGRADE: Memaksa kamera menggunakan resolusi HD agar QR padat terbaca
+            // PERBAIKAN: Hanya gunakan setting standar agar tidak merusak fokus kamera HP
             const cameraConfig = { 
                 fps: 10, 
-                qrbox: { width: 250, height: 250 },
-                videoConstraints: {
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 }
-                }
+                qrbox: { width: 250, height: 250 }
             };
 
-            html5Qrcode.start({ facingMode: "environment" }, cameraConfig, (decodedText) => {
+            // PERBAIKAN: Memaksa browser HP untuk membuka kamera belakang (environment)
+            html5Qrcode.start({ facingMode: { exact: "environment" } }, cameraConfig, (decodedText) => {
                 if (isProcessing) return; 
                 isProcessing = true;
                 
@@ -119,7 +116,19 @@
                 try { extractedToken = new URL(decodedText).searchParams.get("token") || decodedText; } catch(e) { }
                 prosesValidasiToken(extractedToken);
             })
-            .then(() => { isCameraRunning = true; }).catch(err => { console.log("Izin kamera belum diberikan."); });
+            .then(() => { isCameraRunning = true; })
+            .catch(err => { 
+                console.log("Gagal akses kamera belakang, mencoba kamera default...", err);
+                // Fallback aman jika dibuka di Laptop/PC yang tidak punya kamera "environment"
+                html5Qrcode.start({ facingMode: "environment" }, cameraConfig, (decodedText) => {
+                    if (isProcessing) return; isProcessing = true;
+                    if (isCameraRunning && html5Qrcode.getState() === 2) { html5Qrcode.pause(); } 
+                    showNotification("QR Terbaca! Memvalidasi...", false, true);
+                    let extractedToken = decodedText;
+                    try { extractedToken = new URL(decodedText).searchParams.get("token") || decodedText; } catch(e) { }
+                    prosesValidasiToken(extractedToken);
+                }).then(() => { isCameraRunning = true; });
+            });
         }
 
         btnUpload.addEventListener('click', () => { if (!isProcessing) fileInput.click(); });
@@ -147,10 +156,8 @@
         function prosesValidasiToken(token) {
             isProcessing = true;
             
-            // PERBAIKAN: Gunakan URL Absolut bawaan Laravel
             const urlValidasi = "{{ url('/event/' . $event->id . '/scan-validasi') }}";
             
-            // PERBAIKAN: Gunakan FormData agar request POST tidak diubah jadi GET oleh server
             let formData = new FormData();
             formData.append('token', token);
 
