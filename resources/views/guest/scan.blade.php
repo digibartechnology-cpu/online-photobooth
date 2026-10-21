@@ -60,6 +60,9 @@
     </div>
 
     <script>
+        // WAJIB DITAMBAHKAN: File asisten (Worker) agar Nimiq bisa membaca file gambar dari galeri HP
+        QrScanner.WORKER_PATH = 'https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js';
+
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const resultBox = document.getElementById('scan-result');
         const fileInput = document.getElementById('qr-upload');
@@ -106,7 +109,7 @@
                     if (isProcessing) return;
                     isProcessing = true;
                     
-                    qrScanner.stop(); // Matikan kamera agar tidak dobel scan
+                    qrScanner.stop(); 
                     showNotification("QR Terbaca! Memvalidasi...", false, true);
                     
                     let decodedText = result.data;
@@ -141,15 +144,14 @@
             showNotification("Menganalisis kode QR...", false, true);
 
             try {
-                // PERBAIKAN: Matikan kamera total sebelum membaca file galeri untuk melegakan memori Safari
-                if (qrScanner) {
-                    qrScanner.stop();
-                }
+                if (qrScanner) { qrScanner.stop(); }
                 
-                // Membaca file dengan parameter detail
-                const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
+                // PERBAIKAN: Menggunakan pengaturan alsoTryWithoutScanRegion agar Nimiq mencari QR di seluruh sudut foto
+                const decodedText = await QrScanner.scanImage(file, { 
+                    returnDetailedScanResult: false,
+                    alsoTryWithoutScanRegion: true
+                });
                 
-                let decodedText = result.data || result;
                 let extractedToken = decodedText;
                 try { 
                     let urlObj = new URL(decodedText);
@@ -158,11 +160,10 @@
                 
                 prosesValidasiToken(extractedToken);
             } catch (err) {
-                console.error(err);
+                console.error("Error scan galeri: ", err);
                 showNotification("Gagal! Gambar QR tidak terbaca.", false);
                 fileInput.value = ""; 
                 isProcessing = false;
-                // Nyalakan ulang kamera jika gagal
                 setTimeout(() => { inisialisasiScanner(); }, 1500);
             }
         });
