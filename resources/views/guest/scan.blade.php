@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <div id="scan-result" class="hidden backdrop-blur-md border p-4 rounded-2xl text-sm font-bold transition-all duration-300 mb-4"></div>
+        <div id="scan-result" class="hidden backdrop-blur-md border p-4 rounded-2xl text-sm font-bold transition-all duration-300 mb-4 z-50 relative"></div>
 
         <div class="w-full anim-muncul delay-300">
             <input type="file" id="qr-upload" accept="image/*" class="hidden">
@@ -71,7 +71,7 @@
 
         function showNotification(message, isSuccess, isProcessingState = false) {
             resultBox.classList.remove('hidden');
-            resultBox.className = "backdrop-blur-md border p-4 rounded-2xl text-sm font-bold transition-all duration-300 mb-4";
+            resultBox.className = "backdrop-blur-md border p-4 rounded-2xl text-sm font-bold transition-all duration-300 mb-4 z-50 relative";
             if (isProcessingState) {
                 resultBox.classList.add('bg-blue-500/10', 'border-blue-500/30', 'text-blue-400');
                 resultBox.innerHTML = `⏳ ${message}`;
@@ -85,7 +85,6 @@
             }
         }
 
-        // OTOMATIS CEK: Jika link URL bawa parameter ?token=, langsung bypass validasi tanpa buka kamera!
         const urlParams = new URLSearchParams(window.location.search);
         const urlToken = urlParams.get('token');
         if (urlToken) {
@@ -98,6 +97,13 @@
         function startCamera() {
             if (!html5Qrcode) { html5Qrcode = new Html5Qrcode("reader"); }
             html5Qrcode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => {
+                if (isProcessing) return; 
+                isProcessing = true;
+                
+                if (isCameraRunning && html5Qrcode.getState() === 2) { html5Qrcode.pause(); } 
+                
+                showNotification("QR Terbaca! Memvalidasi...", false, true);
+                
                 let extractedToken = decodedText;
                 try { extractedToken = new URL(decodedText).searchParams.get("token") || decodedText; } catch(e) { }
                 prosesValidasiToken(extractedToken);
@@ -110,7 +116,9 @@
         fileInput.addEventListener('change', async (e) => {
             if (e.target.files.length === 0) return;
             const file = e.target.files[0];
-            isProcessing = true; showNotification("Menganalisis kode QR...", false, true);
+            if (isProcessing) return;
+            isProcessing = true; 
+            showNotification("Menganalisis kode QR...", false, true);
 
             try {
                 if (isCameraRunning) { await html5Qrcode.stop(); isCameraRunning = false; }
@@ -127,12 +135,27 @@
 
         function prosesValidasiToken(token) {
             isProcessing = true;
-            fetch(`/event/{{ $event->id }}/scan-validasi`, {
+            
+            // PERBAIKAN: Gunakan URL Absolut bawaan Laravel
+            const urlValidasi = "{{ url('/event/' . $event->id . '/scan-validasi') }}";
+            
+            // PERBAIKAN: Gunakan FormData agar request POST tidak diubah jadi GET oleh server
+            let formData = new FormData();
+            formData.append('token', token);
+
+            fetch(urlValidasi, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                body: JSON.stringify({ token: token })
+                headers: { 
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("Terjadi kesalahan server");
+                return res.json();
+            })
             .then(async data => {
                 if (data.status === 'success') {
                     if (isCameraRunning && html5Qrcode) { try { await html5Qrcode.stop(); } catch(e) {} }
@@ -140,11 +163,12 @@
                     setTimeout(() => window.location.href = data.redirect, 800);
                 } else {
                     showNotification(data.message, false); fileInput.value = ""; isProcessing = false;
-                    if (!urlToken && !isCameraRunning) { setTimeout(() => { startCamera(); }, 2000); }
+                    if (!urlToken && isCameraRunning && html5Qrcode) { html5Qrcode.resume(); } 
                 }
-            }).catch(() => {
+            }).catch((err) => {
+                console.error(err);
                 showNotification("Koneksi terputus, silakan coba lagi.", false); isProcessing = false;
-                if (!urlToken && !isCameraRunning) { setTimeout(() => { startCamera(); }, 2000); }
+                if (!urlToken && isCameraRunning && html5Qrcode) { html5Qrcode.resume(); }
             });
         }
     </script>
