@@ -95,17 +95,20 @@
         }
 
         function inisialisasiScanner() {
-            // Nimiq Engine Initialization
+            if (qrScanner) {
+                qrScanner.destroy();
+                qrScanner = null;
+            }
+
             qrScanner = new QrScanner(
                 videoElem,
                 result => {
                     if (isProcessing) return;
                     isProcessing = true;
                     
-                    qrScanner.pause(); // Hentikan kamera sementara
+                    qrScanner.stop(); // Matikan kamera agar tidak dobel scan
                     showNotification("QR Terbaca! Memvalidasi...", false, true);
                     
-                    // Ekstraksi Token
                     let decodedText = result.data;
                     let extractedToken = decodedText;
                     try { 
@@ -118,13 +121,13 @@
                 { 
                     highlightScanRegion: true,
                     highlightCodeOutline: true,
-                    maxScansPerSecond: 15 // Cek 15 frame per detik dengan brutal
+                    maxScansPerSecond: 15
                 }
             );
 
             qrScanner.start().catch(err => {
                 console.error("Kamera gagal dimulai:", err);
-                showNotification("Gagal mengakses kamera. Pastikan izin diberikan.", false);
+                showNotification("Gagal mengakses kamera.", false);
             });
         }
 
@@ -138,11 +141,15 @@
             showNotification("Menganalisis kode QR...", false, true);
 
             try {
-                if (qrScanner) qrScanner.pause();
+                // PERBAIKAN: Matikan kamera total sebelum membaca file galeri untuk melegakan memori Safari
+                if (qrScanner) {
+                    qrScanner.stop();
+                }
                 
-                // Nimiq baca file langsung
-                const decodedText = await QrScanner.scanImage(file, { returnDetailedScanResult: false });
+                // Membaca file dengan parameter detail
+                const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
                 
+                let decodedText = result.data || result;
                 let extractedToken = decodedText;
                 try { 
                     let urlObj = new URL(decodedText);
@@ -151,9 +158,12 @@
                 
                 prosesValidasiToken(extractedToken);
             } catch (err) {
+                console.error(err);
                 showNotification("Gagal! Gambar QR tidak terbaca.", false);
-                fileInput.value = ""; isProcessing = false;
-                if (qrScanner) qrScanner.start();
+                fileInput.value = ""; 
+                isProcessing = false;
+                // Nyalakan ulang kamera jika gagal
+                setTimeout(() => { inisialisasiScanner(); }, 1500);
             }
         });
 
@@ -186,13 +196,13 @@
                     showNotification(data.message, false); 
                     fileInput.value = ""; 
                     isProcessing = false;
-                    if (!urlToken && qrScanner) qrScanner.start();
+                    if (!urlToken) inisialisasiScanner();
                 }
             }).catch((err) => {
                 console.error(err);
                 showNotification("Koneksi terputus, silakan coba lagi.", false); 
                 isProcessing = false;
-                if (!urlToken && qrScanner) qrScanner.start();
+                if (!urlToken) inisialisasiScanner();
             });
         }
     </script>
