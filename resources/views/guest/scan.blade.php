@@ -54,19 +54,10 @@
 
         <div class="w-full anim-muncul delay-300">
             <input type="file" id="qr-upload" accept="image/*" class="hidden">
-            <button type="button" id="btn-upload" class="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-sm font-semibold transition-all cursor-pointer shadow-sm hover:shadow-md mb-4">
+            <button type="button" id="btn-upload" class="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-sm font-semibold transition-all cursor-pointer shadow-sm hover:shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
                 Upload QR dari Galeri
             </button>
-
-            <!-- FITUR BARU: PLAN B INPUT MANUAL TOKEN -->
-            <div class="border-t border-white/10 pt-4 text-left">
-                <p class="text-xs text-slate-400 mb-2 font-medium">Kamera sulit fokus? Masukkan token manual:</p>
-                <div class="flex gap-2">
-                    <input type="text" id="manual-token" placeholder="Ketik token di sini..." class="w-full bg-[#1a1a1a] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors" autocomplete="off">
-                    <button type="button" id="btn-manual" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-500/20">Cek</button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -75,8 +66,6 @@
         const resultBox = document.getElementById('scan-result');
         const fileInput = document.getElementById('qr-upload');
         const btnUpload = document.getElementById('btn-upload');
-        const btnManual = document.getElementById('btn-manual');
-        const manualTokenInput = document.getElementById('manual-token');
         
         let html5Qrcode; 
         let isCameraRunning = false; 
@@ -111,41 +100,51 @@
             if (!html5Qrcode) { html5Qrcode = new Html5Qrcode("reader"); }
             
             const cameraConfig = { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 },
-                // UPGRADE: Pakai engine Barcode asli bawaan HP jika didukung (sangat cepat!)
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
-                }
+                fps: 15, 
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                    let size = Math.floor(minEdgeSize * 0.8);
+                    return { width: size, height: size };
+                },
+                aspectRatio: 1.0,
+                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
             };
 
             html5Qrcode.start({ facingMode: "environment" }, cameraConfig, (decodedText) => {
                 if (isProcessing) return; 
                 isProcessing = true;
+                
                 if (isCameraRunning && html5Qrcode.getState() === 2) { html5Qrcode.pause(); } 
                 
                 showNotification("QR Terbaca! Memvalidasi...", false, true);
                 
                 let extractedToken = decodedText;
-                try { extractedToken = new URL(decodedText).searchParams.get("token") || decodedText; } catch(e) { }
+                try { 
+                    let urlObj = new URL(decodedText);
+                    extractedToken = urlObj.searchParams.get("token") || urlObj.pathname.split('/').pop() || decodedText; 
+                } catch(e) { }
+                
                 prosesValidasiToken(extractedToken);
             })
             .then(() => { isCameraRunning = true; })
             .catch(err => { 
-                console.log("Kamera environment gagal. Fallback...", err);
+                console.log("Gagal akses kamera belakang, mencoba mode bebas...", err);
                 html5Qrcode.start({ facingMode: "user" }, cameraConfig, (decodedText) => {
                     if (isProcessing) return; isProcessing = true;
                     if (isCameraRunning && html5Qrcode.getState() === 2) { html5Qrcode.pause(); } 
                     showNotification("QR Terbaca! Memvalidasi...", false, true);
                     let extractedToken = decodedText;
-                    try { extractedToken = new URL(decodedText).searchParams.get("token") || decodedText; } catch(e) { }
+                    try { 
+                        let urlObj = new URL(decodedText);
+                        extractedToken = urlObj.searchParams.get("token") || urlObj.pathname.split('/').pop() || decodedText; 
+                    } catch(e) { }
                     prosesValidasiToken(extractedToken);
                 }).then(() => { isCameraRunning = true; });
             });
         }
 
-        // Event Tombol Upload
         btnUpload.addEventListener('click', () => { if (!isProcessing) fileInput.click(); });
+
         fileInput.addEventListener('change', async (e) => {
             if (e.target.files.length === 0) return;
             const file = e.target.files[0];
@@ -157,7 +156,10 @@
                 if (isCameraRunning && html5Qrcode.getState() === 2) { await html5Qrcode.stop(); isCameraRunning = false; }
                 const decodedText = await html5Qrcode.scanFile(file, true);
                 let extractedToken = decodedText;
-                try { extractedToken = new URL(decodedText).searchParams.get("token") || decodedText; } catch(e) { }
+                try { 
+                    let urlObj = new URL(decodedText);
+                    extractedToken = urlObj.searchParams.get("token") || urlObj.pathname.split('/').pop() || decodedText; 
+                } catch(e) { }
                 prosesValidasiToken(extractedToken);
             } catch (err) {
                 showNotification("Gagal! Gambar QR tidak terbaca.", false);
@@ -166,19 +168,9 @@
             }
         });
 
-        // Event Tombol Input Manual
-        btnManual.addEventListener('click', () => {
-            const inputVal = manualTokenInput.value.trim();
-            if (!inputVal) {
-                showNotification("Ketik token terlebih dahulu!", false);
-                return;
-            }
-            showNotification("Memvalidasi token manual...", false, true);
-            prosesValidasiToken(inputVal);
-        });
-
         function prosesValidasiToken(token) {
             isProcessing = true;
+            
             const urlValidasi = "{{ url('/event/' . $event->id . '/scan-validasi') }}";
             
             let formData = new FormData();
@@ -203,16 +195,12 @@
                     showNotification("Voucher Valid! 🎉", true);
                     setTimeout(() => window.location.href = data.redirect, 800);
                 } else {
-                    showNotification(data.message, false); 
-                    fileInput.value = ""; 
-                    manualTokenInput.value = "";
-                    isProcessing = false;
+                    showNotification(data.message, false); fileInput.value = ""; isProcessing = false;
                     if (!urlToken && isCameraRunning && html5Qrcode) { html5Qrcode.resume(); } 
                 }
             }).catch((err) => {
                 console.error(err);
-                showNotification("Koneksi terputus, silakan coba lagi.", false); 
-                isProcessing = false;
+                showNotification("Koneksi terputus, silakan coba lagi.", false); isProcessing = false;
                 if (!urlToken && isCameraRunning && html5Qrcode) { html5Qrcode.resume(); }
             });
         }

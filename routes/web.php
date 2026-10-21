@@ -29,6 +29,22 @@ Route::post('/simpan-nama', [GuestController::class, 'saveName']);
 
 Route::get('/redeem', [VoucherController::class, 'redeem'])->name('voucher.redeem');
 
+// ==========================================
+// RUTE RAHASIA SUPER PENDEK UNTUK QR CODE
+// ==========================================
+Route::get('/v/{token}', function($token) {
+    $voucher = \App\Models\Voucher::where('token', $token)->first();
+    if (!$voucher) {
+        return redirect('/')->with('error', 'Silang Merah! QR Code tidak valid.');
+    }
+    if ($voucher->status !== 'available') {
+        return redirect('/')->with('error', 'QR Code sudah hangus / pernah digunakan!');
+    }
+    // Buka gembok sesi & langsung lempar ke halaman isi nama (Bypass Native Kamera)
+    session(['active_token' => $token, 'event_id' => $voucher->event_id]);
+    return redirect('/isi-nama');
+});
+
 // Halaman Studio / Pengambilan Foto
 Route::get('/studio', function () {
     if (!session('active_token') || !session('guest_name')) {

@@ -92,8 +92,8 @@
                         <div class="qr-item">
                             <!-- SVG asli disembunyikan agar server PHP tidak crash -->
                             <div class="hidden-svg" style="display: none;">
-                                <!-- PERBAIKAN: Menambahkan ID Event ke dalam URL QR Code -->
-                                {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)->margin(4)->generate(url('/event/' . $event->id . '/scan?token='.$voucher->token)) !!}
+                                <!-- PERBAIKAN: Menurunkan Error Correction Level ke L dan menggunakan URL /v/TOKEN -->
+                                {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::errorCorrection('L')->margin(2)->size(300)->generate(url('/v/' . $voucher->token)) !!}
                             </div>
                             
                             <!-- Tempat munculnya PNG murni hasil konversi -->

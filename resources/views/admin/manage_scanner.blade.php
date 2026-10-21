@@ -39,14 +39,31 @@
         const alertBox = document.getElementById('alertBox');
         let isScanning = true;
 
+        // UPGRADE: Konfigurasi kamera dinamis seperti scanner tamu
+        const cameraConfig = { 
+            fps: 15, 
+            qrbox: function(viewfinderWidth, viewfinderHeight) {
+                let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                let size = Math.floor(minEdgeSize * 0.8);
+                return { width: size, height: size };
+            },
+            formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+        };
+
         html5QrCode.start(
-            { facingMode: "environment" }, { fps: 15, qrbox: { width: 280, height: 280 } },
+            { facingMode: "environment" }, 
+            cameraConfig,
             (decodedText) => {
                 if(!isScanning) return;
                 isScanning = false; 
 
-                let url = new URL(decodedText);
-                let tokenStr = url.searchParams.get("token") || decodedText;
+                // UPGRADE: Logika ekstraksi token bisa membaca URL panjang maupun URL pendek (/v/TOKEN)
+                let tokenStr = decodedText;
+                try { 
+                    let urlObj = new URL(decodedText);
+                    tokenStr = urlObj.searchParams.get("token") || urlObj.pathname.split('/').pop() || decodedText; 
+                } catch(e) { }
+
                 let tokenCSRF = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 fetch('/admin-home/event/{{ $event->id }}/scan', {
@@ -62,6 +79,8 @@
                         alertBox.style.color = '#0f5132';
                         alertBox.style.border = '2px solid #badbcc';
                         alertBox.innerHTML = "✅ Valid! Membuka Photobooth...";
+                        // Matikan kamera sebelum pindah halaman
+                        if (html5QrCode.getState() === 2) { html5QrCode.stop(); }
                         setTimeout(() => { window.location.href = '/studio'; }, 1000);
                     } else {
                         alertBox.style.background = '#f8d7da';
@@ -70,10 +89,22 @@
                         alertBox.innerHTML = "❌ " + data.message;
                         setTimeout(() => { isScanning = true; alertBox.style.display = 'none'; }, 2500);
                     }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = '#f8d7da';
+                    alertBox.style.color = '#842029';
+                    alertBox.style.border = '2px solid #f5c2c7';
+                    alertBox.innerHTML = "❌ Terjadi kesalahan jaringan.";
+                    setTimeout(() => { isScanning = true; alertBox.style.display = 'none'; }, 2500);
                 });
             },
             (error) => { }
-        );
+        ).catch(err => {
+            console.log("Mencoba kamera alternatif...");
+            html5QrCode.start({ facingMode: "user" }, cameraConfig, /* Callback sama seperti di atas... */);
+        });
     </script>
 </body>
 </html>
