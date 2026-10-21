@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Event;
 use Carbon\Carbon;
 
-class GuestController
+class GuestController extends Controller
 {
     // 1. Halaman Linktree Portal (Hanya papar acara yang belum tamat)
     public function portal()
@@ -66,27 +66,30 @@ class GuestController
         return view('guest.scan', compact('event'));
     }
 
+    // FUNGSI VALIDASI AJAX WEB SCANNER YANG SUDAH DIPERBAIKI
     public function validasiScan(Request $request, $id)
-{
-    $token = $request->token;
-    $voucher = Voucher::where('token', $token)->where('event_id', $id)->first();
+    {
+        $token = $request->token;
+        
+        // PERBAIKAN: Menambahkan \App\Models\ agar Laravel tahu di mana mencari tabel Voucher
+        $voucher = \App\Models\Voucher::where('token', $token)->where('event_id', $id)->first();
 
-    if (!$voucher) {
-        return response()->json(['status' => 'error', 'message' => 'QR Code ini bukan untuk acara ini.']);
+        if (!$voucher) {
+            return response()->json(['status' => 'error', 'message' => 'QR Code ini bukan untuk acara ini.']);
+        }
+        if ($voucher->status !== 'available') {
+            return response()->json(['status' => 'error', 'message' => 'QR Code sudah hangus / pernah digunakan!']);
+        }
+
+        // Buka gembok sesi studio untuk tamu
+        session(['active_token' => $token, 'event_id' => $id]);
+
+        // WAJIB ADA: Mengirim perintah redirect ke frontend
+        return response()->json([
+            'status' => 'success',
+            'redirect' => url('/isi-nama')
+        ]);
     }
-    if ($voucher->status !== 'available') {
-        return response()->json(['status' => 'error', 'message' => 'QR Code sudah hangus / pernah digunakan!']);
-    }
-
-    // Buka gembok sesi studio untuk tamu
-    session(['active_token' => $token, 'event_id' => $id]);
-
-    // WAJIB ADA: Mengirim perintah redirect ke frontend
-    return response()->json([
-        'status' => 'success',
-        'redirect' => '/isi-nama'
-    ]);
-}
 
     // 3. Halaman Input Nama
     public function askName()
