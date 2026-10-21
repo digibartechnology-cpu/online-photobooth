@@ -130,7 +130,7 @@
 
             qrScanner.start().catch(err => {
                 console.error("Kamera gagal dimulai:", err);
-                showNotification("Gagal mengakses kamera.", false);
+                showNotification("Gagal mengakses kamera. Pastikan izin diberikan.", false);
             });
         }
 
