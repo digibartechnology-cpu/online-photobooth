@@ -6,8 +6,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Scan Tiket | DigiBAR</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- MENGGANTI ENGINE KE NIMIQ QR SCANNER (SUPER AGRESIF) -->
+    
+    <!-- MESIN HYBRID: Keduanya diload bersaman -->
+    <!-- 1. Nimiq untuk Live Camera (Super Agresif) -->
     <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
+    <!-- 2. HTML5-QRCode khusus untuk Upload Galeri (Bebas Error CORS) -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; }
@@ -43,10 +48,13 @@
                 <div class="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-white/70 rounded-br-xl z-20 pointer-events-none"></div>
                 <div class="absolute top-1/2 left-0 w-full h-[2px] bg-[#0055ff] shadow-[0_0_15px_#0055ff] z-30 opacity-80 animate-[ping_2.5s_ease-in-out_infinite] pointer-events-none"></div>
                 
-                <!-- Tag Video Native untuk Nimiq -->
+                <!-- Tag Video untuk Nimiq Camera -->
                 <video id="qr-video" class="w-full h-full absolute inset-0 object-cover"></video>
             </div>
         </div>
+
+        <!-- Wadah Tersembunyi khusus untuk pembacaan File Galeri -->
+        <div id="file-reader" class="hidden"></div>
 
         <div id="scan-result" class="hidden backdrop-blur-md border p-4 rounded-2xl text-sm font-bold transition-all duration-300 mb-4 z-50 relative"></div>
 
@@ -60,9 +68,6 @@
     </div>
 
     <script>
-        // WAJIB DITAMBAHKAN: File asisten (Worker) agar Nimiq bisa membaca file gambar dari galeri HP
-        QrScanner.WORKER_PATH = 'https://unpkg.com/qr-scanner@1.4.2/qr-scanner-worker.min.js';
-
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         const resultBox = document.getElementById('scan-result');
         const fileInput = document.getElementById('qr-upload');
@@ -97,6 +102,7 @@
             inisialisasiScanner();
         }
 
+        // --- ENGINE 1: NIMIQ UNTUK LIVE CAMERA ---
         function inisialisasiScanner() {
             if (qrScanner) {
                 qrScanner.destroy();
@@ -136,6 +142,7 @@
 
         btnUpload.addEventListener('click', () => { if (!isProcessing) fileInput.click(); });
 
+        // --- ENGINE 2: HTML5-QRCODE KHUSUS UNTUK UPLOAD GALERI ---
         fileInput.addEventListener('change', async (e) => {
             if (e.target.files.length === 0) return;
             const file = e.target.files[0];
@@ -144,13 +151,12 @@
             showNotification("Menganalisis kode QR...", false, true);
 
             try {
+                // Matikan Nimiq Camera agar tidak bentrok
                 if (qrScanner) { qrScanner.stop(); }
                 
-                // PERBAIKAN: Menggunakan pengaturan alsoTryWithoutScanRegion agar Nimiq mencari QR di seluruh sudut foto
-                const decodedText = await QrScanner.scanImage(file, { 
-                    returnDetailedScanResult: false,
-                    alsoTryWithoutScanRegion: true
-                });
+                // Gunakan HTML5-QRCode yang kebal terhadap error CORS untuk membaca file gambar
+                const fileScanner = new Html5Qrcode("file-reader");
+                const decodedText = await fileScanner.scanFile(file, true);
                 
                 let extractedToken = decodedText;
                 try { 
@@ -164,6 +170,7 @@
                 showNotification("Gagal! Gambar QR tidak terbaca.", false);
                 fileInput.value = ""; 
                 isProcessing = false;
+                // Jika gagal, nyalakan kamera Nimiq kembali
                 setTimeout(() => { inisialisasiScanner(); }, 1500);
             }
         });
