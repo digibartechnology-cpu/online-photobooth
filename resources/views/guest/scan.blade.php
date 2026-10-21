@@ -96,7 +96,18 @@
 
         function startCamera() {
             if (!html5Qrcode) { html5Qrcode = new Html5Qrcode("reader"); }
-            html5Qrcode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => {
+            
+            // UPGRADE: Memaksa kamera menggunakan resolusi HD agar QR padat terbaca
+            const cameraConfig = { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                videoConstraints: {
+                    width: { min: 640, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 }
+                }
+            };
+
+            html5Qrcode.start({ facingMode: "environment" }, cameraConfig, (decodedText) => {
                 if (isProcessing) return; 
                 isProcessing = true;
                 
