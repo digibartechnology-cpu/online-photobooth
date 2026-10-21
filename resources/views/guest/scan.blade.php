@@ -6,14 +6,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Scan Tiket | DigiBAR</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- MENGGANTI ENGINE KE NIMIQ QR SCANNER (SUPER AGRESIF) -->
+    <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #050505; color: white; }
-        #reader { border: none !important; background: transparent; }
-        #reader video, #reader img { object-fit: cover; border-radius: 1.5rem; width: 100%; height: 100%; }
-        #reader__dashboard_section_csr span { color: white !important; }
-        #reader__dashboard_section_swaplink, #reader__dashboard_section_csr input { display: none; }
         
         @keyframes slideUpFade {
             0% { opacity: 0; transform: translateY(30px) scale(0.95); }
@@ -40,13 +37,14 @@
         <div class="relative w-full aspect-[4/3] rounded-3xl p-1 mb-6 anim-muncul delay-200">
             <div class="absolute inset-0 bg-gradient-to-r from-[#003eb3] via-blue-400 to-[#003eb3] rounded-3xl opacity-30 blur-md animate-pulse"></div>
             <div class="relative w-full h-full bg-black rounded-3xl overflow-hidden border border-white/10 z-10">
-                <div class="absolute top-4 left-4 w-12 h-12 border-t-4 border-l-4 border-white/70 rounded-tl-xl z-20"></div>
-                <div class="absolute top-4 right-4 w-12 h-12 border-t-4 border-r-4 border-white/70 rounded-tr-xl z-20"></div>
-                <div class="absolute bottom-4 left-4 w-12 h-12 border-b-4 border-l-4 border-white/70 rounded-bl-xl z-20"></div>
-                <div class="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-white/70 rounded-br-xl z-20"></div>
-                <div class="absolute top-1/2 left-0 w-full h-[2px] bg-[#0055ff] shadow-[0_0_15px_#0055ff] z-30 opacity-80 animate-[ping_2.5s_ease-in-out_infinite]"></div>
+                <div class="absolute top-4 left-4 w-12 h-12 border-t-4 border-l-4 border-white/70 rounded-tl-xl z-20 pointer-events-none"></div>
+                <div class="absolute top-4 right-4 w-12 h-12 border-t-4 border-r-4 border-white/70 rounded-tr-xl z-20 pointer-events-none"></div>
+                <div class="absolute bottom-4 left-4 w-12 h-12 border-b-4 border-l-4 border-white/70 rounded-bl-xl z-20 pointer-events-none"></div>
+                <div class="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-white/70 rounded-br-xl z-20 pointer-events-none"></div>
+                <div class="absolute top-1/2 left-0 w-full h-[2px] bg-[#0055ff] shadow-[0_0_15px_#0055ff] z-30 opacity-80 animate-[ping_2.5s_ease-in-out_infinite] pointer-events-none"></div>
                 
-                <div id="reader" class="w-full h-full absolute inset-0"></div>
+                <!-- Tag Video Native untuk Nimiq -->
+                <video id="qr-video" class="w-full h-full absolute inset-0 object-cover"></video>
             </div>
         </div>
 
@@ -66,9 +64,9 @@
         const resultBox = document.getElementById('scan-result');
         const fileInput = document.getElementById('qr-upload');
         const btnUpload = document.getElementById('btn-upload');
+        const videoElem = document.getElementById('qr-video');
         
-        let html5Qrcode; 
-        let isCameraRunning = false; 
+        let qrScanner;
         let isProcessing = false;
 
         function showNotification(message, isSuccess, isProcessingState = false) {
@@ -93,53 +91,40 @@
             showNotification("Token terdeteksi, memvalidasi...", false, true);
             prosesValidasiToken(urlToken);
         } else {
-            startCamera();
+            inisialisasiScanner();
         }
 
-        function startCamera() {
-            if (!html5Qrcode) { html5Qrcode = new Html5Qrcode("reader"); }
-            
-            const cameraConfig = { 
-                fps: 15, 
-                qrbox: function(viewfinderWidth, viewfinderHeight) {
-                    let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-                    let size = Math.floor(minEdgeSize * 0.8);
-                    return { width: size, height: size };
-                },
-                aspectRatio: 1.0,
-                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ] 
-            };
-
-            html5Qrcode.start({ facingMode: "environment" }, cameraConfig, (decodedText) => {
-                if (isProcessing) return; 
-                isProcessing = true;
-                
-                if (isCameraRunning && html5Qrcode.getState() === 2) { html5Qrcode.pause(); } 
-                
-                showNotification("QR Terbaca! Memvalidasi...", false, true);
-                
-                let extractedToken = decodedText;
-                try { 
-                    let urlObj = new URL(decodedText);
-                    extractedToken = urlObj.searchParams.get("token") || urlObj.pathname.split('/').pop() || decodedText; 
-                } catch(e) { }
-                
-                prosesValidasiToken(extractedToken);
-            })
-            .then(() => { isCameraRunning = true; })
-            .catch(err => { 
-                console.log("Gagal akses kamera belakang, mencoba mode bebas...", err);
-                html5Qrcode.start({ facingMode: "user" }, cameraConfig, (decodedText) => {
-                    if (isProcessing) return; isProcessing = true;
-                    if (isCameraRunning && html5Qrcode.getState() === 2) { html5Qrcode.pause(); } 
+        function inisialisasiScanner() {
+            // Nimiq Engine Initialization
+            qrScanner = new QrScanner(
+                videoElem,
+                result => {
+                    if (isProcessing) return;
+                    isProcessing = true;
+                    
+                    qrScanner.pause(); // Hentikan kamera sementara
                     showNotification("QR Terbaca! Memvalidasi...", false, true);
+                    
+                    // Ekstraksi Token
+                    let decodedText = result.data;
                     let extractedToken = decodedText;
                     try { 
                         let urlObj = new URL(decodedText);
                         extractedToken = urlObj.searchParams.get("token") || urlObj.pathname.split('/').pop() || decodedText; 
                     } catch(e) { }
+                    
                     prosesValidasiToken(extractedToken);
-                }).then(() => { isCameraRunning = true; });
+                },
+                { 
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    maxScansPerSecond: 15 // Cek 15 frame per detik dengan brutal
+                }
+            );
+
+            qrScanner.start().catch(err => {
+                console.error("Kamera gagal dimulai:", err);
+                showNotification("Gagal mengakses kamera. Pastikan izin diberikan.", false);
             });
         }
 
@@ -153,18 +138,22 @@
             showNotification("Menganalisis kode QR...", false, true);
 
             try {
-                if (isCameraRunning && html5Qrcode.getState() === 2) { await html5Qrcode.stop(); isCameraRunning = false; }
-                const decodedText = await html5Qrcode.scanFile(file, true);
+                if (qrScanner) qrScanner.pause();
+                
+                // Nimiq baca file langsung
+                const decodedText = await QrScanner.scanImage(file, { returnDetailedScanResult: false });
+                
                 let extractedToken = decodedText;
                 try { 
                     let urlObj = new URL(decodedText);
                     extractedToken = urlObj.searchParams.get("token") || urlObj.pathname.split('/').pop() || decodedText; 
                 } catch(e) { }
+                
                 prosesValidasiToken(extractedToken);
             } catch (err) {
                 showNotification("Gagal! Gambar QR tidak terbaca.", false);
                 fileInput.value = ""; isProcessing = false;
-                setTimeout(() => { startCamera(); }, 2000);
+                if (qrScanner) qrScanner.start();
             }
         });
 
@@ -172,7 +161,6 @@
             isProcessing = true;
             
             const urlValidasi = "{{ url('/event/' . $event->id . '/scan-validasi') }}";
-            
             let formData = new FormData();
             formData.append('token', token);
 
@@ -191,17 +179,20 @@
             })
             .then(async data => {
                 if (data.status === 'success') {
-                    if (isCameraRunning && html5Qrcode && html5Qrcode.getState() === 2) { try { await html5Qrcode.stop(); } catch(e) {} }
+                    if (qrScanner) qrScanner.stop();
                     showNotification("Voucher Valid! 🎉", true);
                     setTimeout(() => window.location.href = data.redirect, 800);
                 } else {
-                    showNotification(data.message, false); fileInput.value = ""; isProcessing = false;
-                    if (!urlToken && isCameraRunning && html5Qrcode) { html5Qrcode.resume(); } 
+                    showNotification(data.message, false); 
+                    fileInput.value = ""; 
+                    isProcessing = false;
+                    if (!urlToken && qrScanner) qrScanner.start();
                 }
             }).catch((err) => {
                 console.error(err);
-                showNotification("Koneksi terputus, silakan coba lagi.", false); isProcessing = false;
-                if (!urlToken && isCameraRunning && html5Qrcode) { html5Qrcode.resume(); }
+                showNotification("Koneksi terputus, silakan coba lagi.", false); 
+                isProcessing = false;
+                if (!urlToken && qrScanner) qrScanner.start();
             });
         }
     </script>
