@@ -21,7 +21,9 @@
         }
 
         .glass-panel { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        #webcam { transform: scaleX(-1); }
+        
+        /* PERBAIKAN 1: Efek Mirror (scaleX) Dihapus agar kamera asli apa adanya */
+        
         #flash-overlay { opacity: 0; transition: opacity 0.15s ease-out; pointer-events: none; }
         .flash-active { opacity: 1 !important; }
         @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
@@ -41,7 +43,6 @@
         <!-- HEADER (Muncul di atas khusus saat HP berdiri/Portrait) -->
         <div class="flex justify-between items-center w-full landscape:hidden md:hidden shrink-0">
             <div>
-                <!-- Label yang sudah direvisi -->
                 <span class="inline-block bg-white/10 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/10">Siapkan Senyum Terbaik</span>
                 <h1 class="text-xl font-extrabold tracking-tight mt-1">Ready, <span class="text-blue-400">{{ session('guest_name') }}</span>! ✨</h1>
             </div>
@@ -50,11 +51,11 @@
         <!-- CAMERA AREA -->
         <div class="flex-1 w-full h-full relative flex flex-col items-center justify-center min-w-0 min-h-0">
             
-            <!-- Box kamera tetap dijaga aspect ratio-nya 4:3 -->
-            <div class="relative w-full max-w-3xl max-h-full aspect-[4/3] glass-panel rounded-[2rem] p-2 shadow-2xl flex items-center justify-center shrink-0">
+            <div class="relative w-full max-w-3xl max-h-full aspect-[4/3] glass-panel rounded-[2rem] p-2 shadow-2xl flex items-center justify-center shrink-0 bg-black">
                 
-                <div class="relative w-full h-full bg-black rounded-[1.5rem] overflow-hidden">
-                    <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                <div class="relative w-full h-full rounded-[1.5rem] overflow-hidden flex items-center justify-center">
+                    <!-- PERBAIKAN 2: object-cover diganti jadi object-contain agar lensa tidak ter-zoom/terpotong -->
+                    <video id="webcam" autoplay playsinline muted class="w-full h-full object-contain"></video>
                     <div id="flash-overlay" class="absolute inset-0 bg-white z-40"></div>
                     <div id="countdown-display" class="absolute inset-0 z-30 flex items-center justify-center text-[8rem] md:text-[12rem] font-black text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] hidden">3</div>
                     <div class="absolute inset-0 z-20 pointer-events-none border-[2px] border-white/10 rounded-[1.5rem] m-2 md:m-4"></div>
@@ -74,7 +75,6 @@
             
             <!-- HEADER VERSI DESKTOP & LANDSCAPE -->
             <div class="hidden landscape:block md:block mb-4 md:mb-6 text-center md:text-left">
-                <!-- Label yang sudah direvisi -->
                 <span class="inline-block bg-white/10 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/10 mb-2">Siapkan Senyum Terbaik</span>
                 <h1 class="text-xl md:text-3xl font-extrabold tracking-tight">Ready, <br><span class="text-blue-400">{{ session('guest_name') }}</span>! ✨</h1>
             </div>
@@ -129,7 +129,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
-        // Mencegah scroll default di mobile browsers
         document.addEventListener('touchmove', function(e) {
             if (!e.target.closest('#selection-grid')) { e.preventDefault(); }
         }, { passive: false });
@@ -159,25 +158,55 @@
             }
         }
 
+        // PERBAIKAN 3: Mancing izin kamera duluan agar list nama kamera di Safari terbuka semua
         async function getCameras() {
             try {
-                const devices = await navigator.mediaDevices.enumerateDevices(); const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                // Pancing stream awal untuk mendapatkan izin (Permission)
+                if (!currentStream) {
+                    currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = currentStream;
+                    video.play();
+                }
+
+                const devices = await navigator.mediaDevices.enumerateDevices(); 
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
                 if (videoDevices.length > 0) {
                     cameraSelect.innerHTML = '';
-                    videoDevices.forEach((device, index) => { const option = document.createElement('option'); option.value = device.deviceId; option.text = device.label || `Kamera ${index + 1}`; cameraSelect.appendChild(option); });
-                    selectedDeviceId = videoDevices[0].deviceId; if(videoDevices.length > 1) cameraSelectorContainer.classList.remove('hidden'); startCamera(selectedDeviceId);
-                } else { startCamera(null); }
-            } catch (err) { startCamera(null); }
+                    videoDevices.forEach((device, index) => { 
+                        const option = document.createElement('option'); 
+                        option.value = device.deviceId; 
+                        option.text = device.label || `Kamera ${index + 1}`; 
+                        cameraSelect.appendChild(option); 
+                    });
+                    
+                    if (videoDevices.length > 1) {
+                        cameraSelectorContainer.classList.remove('hidden'); 
+                    }
+                    
+                    selectedDeviceId = videoDevices[0].deviceId; 
+                    startCamera(selectedDeviceId);
+                } else { 
+                    startCamera(null); 
+                }
+            } catch (err) { 
+                alert("Gagal mengakses kamera. Pastikan izin browser aktif."); 
+            }
         }
 
         async function startCamera(deviceId) {
             if (currentStream) currentStream.getTracks().forEach(track => track.stop());
-            const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, width: { ideal: 1280 }, height: { ideal: 720 } } };
-            try { currentStream = await navigator.mediaDevices.getUserMedia(constraints); video.srcObject = currentStream; video.play(); } 
-            catch (err) { alert("Gagal mengakses kamera. Pastikan izin browser aktif."); }
+            const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined, width: { ideal: 1920 }, height: { ideal: 1080 } } };
+            try { 
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints); 
+                video.srcObject = currentStream; 
+                video.play(); 
+            } 
+            catch (err) { console.log(err); }
         }
 
         function switchCamera() { selectedDeviceId = cameraSelect.value; startCamera(selectedDeviceId); }
+        
         getCameras();
 
         async function triggerSnap() {
@@ -188,11 +217,15 @@
             if (isFlashEnabled) flash.classList.add('flash-active');
             
             setTimeout(() => {
-                const maxH = 600; const ratio = video.videoWidth / video.videoHeight;
-                canvas.height = Math.min(video.videoHeight, maxH); canvas.width = canvas.height * ratio;
-                ctx.translate(canvas.width, 0); ctx.scale(-1, 1); ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const ratio = video.videoWidth / video.videoHeight;
+                // Tinggi maksimal kanvas agar hasil foto tidak pecah, tapi tidak terlalu berat
+                canvas.height = 1080; 
+                canvas.width = canvas.height * ratio;
+                
+                // PERBAIKAN 4: Menghapus logika flip (mirror) di sisi Canvas. Foto akan murni sesuai jepretan lensa
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 allPhotos.push(dataUrl); photoCountText.innerText = allPhotos.length;
 
                 fetch('/api/simpan-mentahan', {
