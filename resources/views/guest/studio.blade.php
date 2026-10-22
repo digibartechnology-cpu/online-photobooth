@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* Mencegah scroll dan mengunci layar */
         html, body {
             height: 100%;
             margin: 0;
@@ -21,15 +20,10 @@
         }
 
         .glass-panel { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        
-        /* PERBAIKAN 1: Efek Mirror (scaleX) Dihapus agar kamera asli apa adanya */
-        
         #flash-overlay { opacity: 0; transition: opacity 0.15s ease-out; pointer-events: none; }
         .flash-active { opacity: 1 !important; }
         @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
         .animate-pop { animation: pop 1s ease-in-out; }
-        
-        /* Scrollbar tersembunyi buat jaga-jaga kalau layar kependekan */
         .hide-scroll::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
@@ -37,10 +31,8 @@
 
     <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] bg-[#003eb3] rounded-[100%] opacity-10 blur-[150px] pointer-events-none z-0"></div>
 
-    <!-- MAIN CONTAINER -->
     <div class="flex-1 w-full max-w-6xl mx-auto z-10 flex flex-col landscape:flex-row md:flex-row p-4 md:p-6 gap-4 md:gap-8 h-full relative">
         
-        <!-- HEADER (Muncul di atas khusus saat HP berdiri/Portrait) -->
         <div class="flex justify-between items-center w-full landscape:hidden md:hidden shrink-0">
             <div>
                 <span class="inline-block bg-white/10 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/10">Siapkan Senyum Terbaik</span>
@@ -48,38 +40,32 @@
             </div>
         </div>
 
-        <!-- CAMERA AREA -->
         <div class="flex-1 w-full h-full relative flex flex-col items-center justify-center min-w-0 min-h-0">
             
             <div class="relative w-full max-w-3xl max-h-full aspect-[4/3] glass-panel rounded-[2rem] p-2 shadow-2xl flex items-center justify-center shrink-0 bg-black">
                 
                 <div class="relative w-full h-full rounded-[1.5rem] overflow-hidden flex items-center justify-center">
-                    <!-- PERBAIKAN 2: object-cover diganti jadi object-contain agar lensa tidak ter-zoom/terpotong -->
-                    <video id="webcam" autoplay playsinline muted class="w-full h-full object-contain"></video>
+                    <!-- Kembali menggunakan object-cover agar memenuhi bingkai 4:3 dengan sempurna -->
+                    <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover"></video>
                     <div id="flash-overlay" class="absolute inset-0 bg-white z-40"></div>
                     <div id="countdown-display" class="absolute inset-0 z-30 flex items-center justify-center text-[8rem] md:text-[12rem] font-black text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] hidden">3</div>
                     <div class="absolute inset-0 z-20 pointer-events-none border-[2px] border-white/10 rounded-[1.5rem] m-2 md:m-4"></div>
                 </div>
 
-                <!-- Info Jepretan di pojok bawah kamera -->
                 <div class="absolute bottom-4 md:bottom-6 left-4 md:left-6 right-4 md:right-6 flex justify-between px-4 py-2 bg-black/50 backdrop-blur-md rounded-2xl border border-white/10 text-[10px] sm:text-xs font-semibold text-slate-300 z-50">
                     <span>Udah foto: <strong id="photo-count" class="text-white">0</strong></span>
                     <span class="text-slate-400">(Sepuasnya!)</span>
                 </div>
-
             </div>
         </div>
 
-        <!-- CONTROL PANEL -->
         <div class="w-full landscape:w-64 md:w-72 lg:w-80 shrink-0 flex flex-col gap-3 justify-center bg-black/20 landscape:bg-transparent md:bg-transparent rounded-3xl p-3 md:p-0 overflow-y-auto hide-scroll max-h-full">
             
-            <!-- HEADER VERSI DESKTOP & LANDSCAPE -->
             <div class="hidden landscape:block md:block mb-4 md:mb-6 text-center md:text-left">
                 <span class="inline-block bg-white/10 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/10 mb-2">Siapkan Senyum Terbaik</span>
                 <h1 class="text-xl md:text-3xl font-extrabold tracking-tight">Ready, <br><span class="text-blue-400">{{ session('guest_name') }}</span>! ✨</h1>
             </div>
 
-            <!-- Kontrol Fitur -->
             <div class="grid grid-cols-2 landscape:grid-cols-1 md:grid-cols-1 gap-2 w-full">
                 <button id="flash-toggle-btn" onclick="toggleFlashSetting()" class="w-full bg-slate-900/80 border border-white/20 text-blue-400 text-[11px] md:text-xs font-bold rounded-xl py-3 outline-none hover:bg-slate-800 backdrop-blur-md flex items-center justify-center gap-1 transition-colors">
                     ⚡ <span id="flash-status-text">Flash: NYALA</span>
@@ -89,7 +75,6 @@
                 </div>
             </div>
 
-            <!-- Tombol Aksi Utama -->
             <div class="flex flex-col gap-2 mt-auto landscape:mt-4 md:mt-6">
                 <button id="snap-btn" onclick="triggerSnap()" class="group relative w-full bg-white text-slate-900 font-extrabold py-4 md:py-6 rounded-2xl text-sm md:text-base shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all flex items-center justify-center gap-2">
                     <span>📸 Jepret!</span>
@@ -98,12 +83,9 @@
                     <span>Pilih Foto 👉</span>
                 </button>
             </div>
-
         </div>
-
     </div>
 
-    <!-- Modal Seleksi Foto -->
     <div id="selectionModal" class="hidden fixed inset-0 z-[9999] bg-black/95 flex flex-col p-4 md:p-8 backdrop-blur-sm">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-5xl mx-auto h-full rounded-3xl flex flex-col shadow-2xl relative overflow-hidden">
             <div class="flex justify-between items-center p-4 md:p-6 border-b border-white/10 shrink-0">
@@ -158,10 +140,8 @@
             }
         }
 
-        // PERBAIKAN 3: Mancing izin kamera duluan agar list nama kamera di Safari terbuka semua
         async function getCameras() {
             try {
-                // Pancing stream awal untuk mendapatkan izin (Permission)
                 if (!currentStream) {
                     currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = currentStream;
@@ -217,13 +197,32 @@
             if (isFlashEnabled) flash.classList.add('flash-active');
             
             setTimeout(() => {
-                const ratio = video.videoWidth / video.videoHeight;
-                // Tinggi maksimal kanvas agar hasil foto tidak pecah, tapi tidak terlalu berat
-                canvas.height = 1080; 
-                canvas.width = canvas.height * ratio;
-                
-                // PERBAIKAN 4: Menghapus logika flip (mirror) di sisi Canvas. Foto akan murni sesuai jepretan lensa
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                // PAKSA FOTO MENJADI LANDSCAPE (4:3) 
+                const targetWidth = 1440;
+                const targetHeight = 1080;
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+
+                const videoRatio = video.videoWidth / video.videoHeight;
+                const targetRatio = targetWidth / targetHeight;
+
+                let drawWidth, drawHeight, startX, startY;
+
+                // Logika pemotongan (crop) area tengah agar proporsional
+                if (videoRatio > targetRatio) {
+                    drawHeight = targetHeight;
+                    drawWidth = video.videoWidth * (targetHeight / video.videoHeight);
+                    startX = (targetWidth - drawWidth) / 2;
+                    startY = 0;
+                } else {
+                    drawWidth = targetWidth;
+                    drawHeight = video.videoHeight * (targetWidth / video.videoWidth);
+                    startX = 0;
+                    startY = (targetHeight - drawHeight) / 2;
+                }
+
+                // Hasil akan selalu landscape sempurna
+                ctx.drawImage(video, startX, startY, drawWidth, drawHeight);
 
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                 allPhotos.push(dataUrl); photoCountText.innerText = allPhotos.length;
