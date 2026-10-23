@@ -54,9 +54,9 @@
                             ?>
                             <button type="button" 
                                     class="btn-pilih-bingkai flex-shrink-0 w-20 md:w-24 border-0 bg-transparent cursor-pointer hover:scale-105 transition-transform outline-none focus:ring-4 focus:ring-blue-500 rounded-xl"
-                                    data-img="{{ asset('templates/' . $frame->file_name) }}"
+                                    data-img="/render-frame/{{ $frame->file_name }}"
                                     data-layout="{{ $encodedLayout }}">
-                                <img src="{{ asset('templates/' . $frame->file_name) }}" class="w-full h-auto rounded-xl border border-white/10 pointer-events-none shadow-lg">
+                                <img src="/render-frame/{{ $frame->file_name }}" class="w-full h-auto rounded-xl border border-white/10 pointer-events-none shadow-lg">
                                 <p class="text-[10px] md:text-[11px] text-center mt-3 font-semibold text-slate-300 pointer-events-none">{{ $frame->nama_frame }}</p>
                             </button>
                         <?php endforeach; ?>

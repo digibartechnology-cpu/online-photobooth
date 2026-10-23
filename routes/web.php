@@ -7,13 +7,23 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GuestController;
 use App\Models\User;
-use App\Models\Event; // <-- Wajib ditambahkan agar welcome.blade.php bisa membaca Event
+use App\Models\Event; 
+
+// ==========================================
+// 0. JALUR BYPASS GAMBAR (SOLUSI FRAME RUSAK/HILANG DI CLOUD)
+// ==========================================
+Route::get('/render-frame/{filename}', function ($filename) {
+    $path = storage_path('app/public/templates/' . $filename);
+    if (file_exists($path)) {
+        return response()->file($path);
+    }
+    abort(404);
+});
+
 
 // ==========================================
 // 1. ALUR TAMU / PENGUNJUNG (PUBLIK)
 // ==========================================
-
-Route::get('/scan', [GuestController::class, 'scan']);
 
 // Halaman Utama: Pintu Masuk & Pilih Event
 Route::get('/', function () {
@@ -22,6 +32,7 @@ Route::get('/', function () {
 });
 
 // Scanner QR & Validasi Nama
+Route::get('/scan', [GuestController::class, 'scan']);
 Route::get('/event/{id}/scan', [GuestController::class, 'scan']);
 Route::post('/event/{id}/scan-validasi', [GuestController::class, 'validasiScan']); 
 Route::get('/isi-nama', [GuestController::class, 'askName']);
@@ -29,9 +40,7 @@ Route::post('/simpan-nama', [GuestController::class, 'saveName']);
 
 Route::get('/redeem', [VoucherController::class, 'redeem'])->name('voucher.redeem');
 
-// ==========================================
-// RUTE RAHASIA SUPER PENDEK UNTUK QR CODE
-// ==========================================
+// Rute Super Pendek untuk QR Code (Langsung tembus ke sesi acara)
 Route::get('/v/{token}', function($token) {
     $voucher = \App\Models\Voucher::where('token', $token)->first();
     if (!$voucher) {
@@ -53,7 +62,7 @@ Route::get('/studio', function () {
     return view('guest.studio'); 
 })->name('photobooth.studio');
 
-// Halaman Pratinjau & 10 Filter Analog
+// Halaman Pratinjau & Pilihan Filter + Frame
 Route::get('/filter-bingkai', function () {
     if (!session('active_token') || !session('guest_name')) {
         return redirect('/')->with('error', 'Akses ditolak.');
@@ -112,7 +121,6 @@ Route::get('/admin-home/event/{id}/scanner', [AdminController::class, 'manageSca
 Route::post('/admin-home/event/{id}/scan', [AdminController::class, 'processScan']);
 
 Route::get('/admin-home/event/{id}/database', [AdminController::class, 'manageDatabase']);
-
 Route::get('/admin-home/event/{id}/gallery', [AdminController::class, 'manageGallery']);
 
 // ---- Menu Frame & Filter ----
@@ -131,4 +139,4 @@ Route::get('/admin-home/settings', [AdminController::class, 'settings'])->name('
 // 4. API / ENDPOINT BACKGROUND
 // ==========================================
 Route::post('/api/cetak-foto', [PhotoController::class, 'cetakKhusus']);
-Route::post('/api/simpan-mentahan', [PhotoController::class, 'simpanMentahan']); // <-- Fungsi Simpan Foto Unlimited
+Route::post('/api/simpan-mentahan', [PhotoController::class, 'simpanMentahan']);

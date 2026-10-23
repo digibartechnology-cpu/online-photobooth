@@ -122,7 +122,7 @@
                             <label class="block text-sm font-bold text-brand-blue mb-2">Kunci ke Acara: <span class="text-red-500">*</span></label>
                             <select name="event_id" class="w-full rounded-xl border-blue-200 border bg-white px-4 py-3 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-brand-blue outline-none shadow-sm">
                                 <option value="">-- Silakan Pilih Acara --</option>
-                                <?php foreach($events as $event): ?>
+                                <?php foreach($events as$event): ?>
                                     <option value="{{ $event->id }}">{{ $event->nama_kegiatan }}</option>
                                 <?php endforeach; ?>
                             </select>
@@ -200,15 +200,15 @@
             
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 <?php if(count($frames) > 0): ?>
-                    <?php foreach($frames as $frame): ?>
+                    <?php foreach($frames as$frame): ?>
                         <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50 hover:bg-white hover:shadow-lg transition-all relative group flex flex-col h-full">
                             <div class="absolute top-3 right-3 bg-white/90 backdrop-blur text-[10px] font-black px-2 py-1 rounded-md shadow-sm border border-slate-200 z-10 tracking-wider">
                                 {{ strtoupper($frame->ukuran_cetak) }}
                             </div>
                             
                             <div class="w-full h-48 bg-slate-100 rounded-xl mb-4 overflow-hidden border border-slate-200 flex items-center justify-center bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWVlIi8+PHJlY3QgeD0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg==')]">
-                                <!-- PERBAIKAN: Menggunakan asset storage dengan fallback cerdas -->
-                                <img src="{{ asset('storage/templates/' . $frame->file_name) }}" onerror="this.src='{{ asset('templates/' . $frame->file_name) }}'" class="h-full object-contain drop-shadow-md p-2">
+                                <!-- JALUR BYPASS GAMBAR -->
+                                <img src="/render-frame/{{ $frame->file_name }}" class="h-full object-contain drop-shadow-md p-2">
                             </div>
                             
                             <div class="flex-grow">
