@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Filter & AI | DigiBAR</title>
+    <title>Manajemen Filter | DigiBAR</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -41,7 +41,7 @@
             @csrf
             <div class="mb-6 flex justify-between items-end">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-900">Konfigurasi Filter & AI Studio</h2>
+                    <h2 class="text-2xl font-bold text-slate-900">Konfigurasi Filter Studio</h2>
                     <p class="text-sm text-slate-500 mt-1">Centang filter yang ingin diaktifkan dan ditampilkan pada layar mesin photobooth tamu.</p>
                 </div>
                 <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-all text-sm">
@@ -139,43 +139,6 @@
 
                         </div>
                     </div>
-
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="text-xl">✨</span>
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800">Filter AI Premium (Cloud API)</h3>
-                                <p class="text-xs text-slate-500">Memerlukan koneksi internet di lokasi untuk proses Post-Processing.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3 mb-6 bg-amber-50 border border-amber-200 p-4 rounded-xl">
-                            <input type="checkbox" name="ai_active" id="ai_toggle" {{ optional($setting)->ai_active ? 'checked' : '' }} class="w-5 h-5 accent-amber-600 rounded" onchange="toggleAiSettings()">
-                            <div>
-                                <label for="ai_toggle" class="font-bold text-amber-900 text-sm cursor-pointer block">Aktifkan Fitur Transformasi AI</label>
-                                <span class="text-xs text-amber-700">Tamu dapat memilih untuk mengubah foto mereka menjadi animasi.</span>
-                            </div>
-                        </div>
-
-                        <div id="ai_settings" class="space-y-4 transition-opacity duration-300 pl-2 border-l-2 border-slate-100 {{ optional($setting)->ai_active ? '' : 'opacity-50 pointer-events-none' }}">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-1">Gaya Animasi (AI Model)</label>
-                                <select name="ai_model" class="w-full rounded-lg border-slate-300 border px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none font-semibold text-slate-700">
-                                    <option value="anime" {{ optional($setting)->ai_model == 'anime' ? 'selected' : '' }}>🌸 Japanese Anime Style</option>
-                                    <option value="pixar" {{ optional($setting)->ai_model == 'pixar' ? 'selected' : '' }}>🎬 3D Pixar/Disney Style</option>
-                                    <option value="comic" {{ optional($setting)->ai_model == 'comic' ? 'selected' : '' }}>🗯️ Comic Book / Pop Art</option>
-                                    <option value="cyberpunk" {{ optional($setting)->ai_model == 'cyberpunk' ? 'selected' : '' }}>🌃 Neon Cyberpunk</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-1">API Key (Provider Layanan)</label>
-                                <input type="password" name="ai_api_key" value="{{ optional($setting)->ai_api_key }}" placeholder="Contoh: sk-xxxxxxxxxxxxxxxxxxxxxxxx" class="w-full rounded-lg border-slate-300 border px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-                                <p class="text-[11px] text-slate-400 mt-1">Gunakan kunci API dari penyedia Stable Diffusion (misal: Replicate / Segmind).</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="lg:col-span-1">
@@ -197,23 +160,6 @@
     </div>
 
     <script>
-        function toggleAiSettings() {
-            const toggle = document.getElementById('ai_toggle');
-            const settings = document.getElementById('ai_settings');
-            const img = document.getElementById('preview_image');
-            const textLabel = document.getElementById('preview_label');
-            
-            if(toggle.checked) {
-                settings.classList.remove('opacity-50', 'pointer-events-none');
-                img.style.filter = "contrast(120%) saturate(150%) hue-rotate(15deg)";
-                textLabel.innerText = "🤖 Simulasi AI Magic";
-            } else {
-                settings.classList.add('opacity-50', 'pointer-events-none');
-                img.style.filter = "none";
-                textLabel.innerText = "Normal (Tanpa Filter)";
-            }
-        }
-
         document.querySelectorAll('.filter-toggle').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
                 const img = document.getElementById('preview_image');
