@@ -46,9 +46,10 @@
         <div id="tab-list" class="tab-content block animate-[fadeIn_0.3s_ease-in-out]">
             @if($list->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                    <?php foreach($list as$p): ?>
+                    <?php foreach($list as $p): ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                        <img src="/storage/ready_to_print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
+                        <!-- PERBAIKAN: Menggunakan fungsi asset() -->
+                        <img src="{{ asset('storage/ready_to_print/' . $p->file_name) }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
                         
                         <div class="flex justify-between items-center mb-3">
                             <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
@@ -57,7 +58,8 @@
                             </div>
                         </div>
 
-                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/storage/ready_to_print/{{$p->file_name }}')" class="block w-full text-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-semibold text-xs py-2.5 rounded-lg transition cursor-pointer">
+                        <!-- PERBAIKAN: Menggunakan fungsi asset() di parameter cetak -->
+                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '{{ asset('storage/ready_to_print/' . $p->file_name) }}')" class="block w-full text-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-semibold text-xs py-2.5 rounded-lg transition cursor-pointer">
                             Proses Cetak →
                         </button>
                     </div>
@@ -72,10 +74,11 @@
         <div id="tab-ongoing" class="tab-content hidden animate-[fadeIn_0.3s_ease-in-out]">
             @if($ongoing->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                    <?php foreach($ongoing as$p): ?>
+                    <?php foreach($ongoing as $p): ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col">
                         <div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
-                        <img src="/storage/ready_to_print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
+                        <!-- PERBAIKAN: Menggunakan fungsi asset() -->
+                        <img src="{{ asset('storage/ready_to_print/' . $p->file_name) }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
                         
                         <div class="flex justify-between items-center mb-4">
                             <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
@@ -95,7 +98,6 @@
                                 ⚠️ Gagal (Print Ulang)
                             </a>
                         </div>
-
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -108,9 +110,10 @@
         <div id="tab-done" class="tab-content hidden animate-[fadeIn_0.3s_ease-in-out]">
             @if($done->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                    <?php foreach($done as$p): ?>
+                    <?php foreach($done as $p): ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 opacity-60 grayscale-[30%]">
-                        <img src="/storage/ready_to_print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain">
+                        <!-- PERBAIKAN: Menggunakan fungsi asset() -->
+                        <img src="{{ asset('storage/ready_to_print/' . $p->file_name) }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain">
                         
                         <div class="flex justify-between items-center mb-1">
                             <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
