@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Photo extends Model
 {
-    // Saya sudah menambahkan 'event_id' di sini agar data tidak ditolak
-    protected $fillable = ['file_name', 'status', 'event_id'];
+    // Menambahkan 'nama' agar Laravel mengizinkan penyimpanan nama tamu
+    protected $fillable = ['file_name', 'status', 'event_id', 'nama'];
 }
