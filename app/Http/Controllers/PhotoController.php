@@ -39,7 +39,6 @@ class PhotoController extends Controller
             if($token) {
                 Voucher::where('token', $token)->update(['status' => 'completed']);
                 session()->forget('active_token'); 
-                session()->forget('guest_name'); 
                 session()->forget('event_id'); 
             }
 

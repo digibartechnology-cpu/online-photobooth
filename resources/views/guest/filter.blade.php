@@ -194,7 +194,6 @@
             <h2 class="text-2xl font-black tracking-tight mb-2">Berhasil!</h2>
             <p class="text-slate-400 text-sm mb-6">Foto Anda telah tersimpan dan siap dicetak.</p>
             
-            <!-- KOTAK NAMA DENGAN AUTO-SCALE 1 BARIS -->
             <div class="bg-black/40 border border-white/10 rounded-2xl p-6 mb-6 overflow-hidden w-full flex flex-col items-center">
                 <span class="text-xs uppercase tracking-widest text-slate-400 font-bold block mb-1">Cetak Atas Nama</span>
                 <div class="w-full flex justify-center items-center">
@@ -273,7 +272,6 @@
                 let percentX = parseFloat(slot.x) || 0; let percentY = parseFloat(slot.y) || 0; let percentW = parseFloat(slot.w) || 100; let percentH = parseFloat(slot.h) || 100;
                 let sx = (percentX / 100) * canvas.width; let sy = (percentY / 100) * canvas.height; let sw = (percentW / 100) * canvas.width; let sh = (percentH / 100) * canvas.height;
                 
-                // PERBAIKAN SIMBOL MATEMATIKA YANG HILANG SEBELUMNYA
                 let scale = Math.max(sw / foto.width, sh / foto.height); 
                 let dw = foto.width * scale; 
                 let dh = foto.height * scale; 
@@ -317,7 +315,6 @@
         function resetZoomState() { scale = 1; posX = 0; posY = 0; setTransform(); zoomContainer.classList.remove('zoom-active'); }
         canvas.addEventListener('click', function() { if(!bingkaiAktif) return; gambarZoom.src = canvas.toDataURL('image/jpeg', 1.0); modalZoom.classList.remove('hidden'); resetZoomState(); hintAnim.classList.remove('opacity-0'); hintAnim.classList.add('opacity-100'); clearTimeout(hintTimeout); hintTimeout = setTimeout(() => { hintAnim.classList.remove('opacity-100'); hintAnim.classList.add('opacity-0'); }, 3000); });
         
-        // PERBAIKAN SIMBOL MATEMATIKA YANG HILANG DI FITUR ZOOM
         function onPointerDown(e) { if (e.target.id === 'btn-tutup-zoom') return; isDragging = true; let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX; let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY; initialClickX = clientX; initialClickY = clientY; startX = clientX - posX; startY = clientY - posY; if(scale > 1) zoomContainer.classList.add('zoom-active'); }
         function onPointerMove(e) { if (!isDragging) return; e.preventDefault(); let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX; let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY; if (scale > 1) { posX = clientX - startX; posY = clientY - startY; setTransform(); } }
         function onPointerUp(e) { if (!isDragging) return; isDragging = false; zoomContainer.classList.remove('zoom-active'); let clientX = e.type.includes('mouse') ? e.clientX : (e.changedTouches ? e.changedTouches[0].clientX : initialClickX); let clientY = e.type.includes('mouse') ? e.clientY : (e.changedTouches ? e.changedTouches[0].clientY : initialClickY); let moveDistance = Math.hypot(clientX - initialClickX, clientY - initialClickY); if (moveDistance < 5 && e.target === zoomContainer) { modalZoom.classList.add('hidden'); resetZoomState(); hintAnim.classList.add('opacity-0'); } }
@@ -326,7 +323,6 @@
         document.getElementById('btn-tutup-zoom').addEventListener('click', function() { modalZoom.classList.add('hidden'); resetZoomState(); hintAnim.classList.add('opacity-0'); });
         zoomContainer.addEventListener('wheel', (e) => { e.preventDefault(); const delta = Math.sign(e.deltaY) * -0.2; scale += delta; scale = Math.min(Math.max(1, scale), 6); if (scale === 1) { posX = 0; posY = 0; } setTransform(); }, {passive: false});
         
-        // PERBAIKAN SIMBOL MATEMATIKA YANG HILANG DI FITUR PINCH ZOOM
         let initialPinchDistance = null; 
         zoomContainer.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { isDragging = false; initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); } }, {passive: false});
         zoomContainer.addEventListener('touchmove', (e) => { if (e.touches.length === 2 && initialPinchDistance) { e.preventDefault(); const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); const distanceChange = currentDistance - initialPinchDistance; scale += distanceChange * 0.01; scale = Math.min(Math.max(1, scale), 6); initialPinchDistance = currentDistance; if (scale === 1) { posX = 0; posY = 0; } setTransform(); } }, {passive: false}); 
@@ -336,7 +332,6 @@
         document.getElementById('btn-ganti').addEventListener('click', function() { window.location.href = '/studio?reselect=true'; });
         document.getElementById('btn-download').addEventListener('click', function() { if(!bingkaiAktif) return showError("Pilih bingkai terlebih dahulu untuk diunduh!"); const link = document.createElement('a'); link.download = 'DigiBAR_Photobooth_' + Date.now() + '.jpg'; link.href = canvas.toDataURL('image/jpeg', 1.0); link.click(); });
 
-        // PERBAIKAN SIMBOL MATEMATIKA YANG HILANG DI FITUR CONFETTI
         function fireConfetti() {
             var duration = 3000; var animationEnd = Date.now() + duration; var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
             function randomInRange(min, max) { return Math.random() * (max - min) + min; }
@@ -354,7 +349,7 @@
         document.getElementById('btn-cetak').addEventListener('click', function() {
             if (!bingkaiAktif) return showError("Pilih bingkai terlebih dahulu!");
             this.innerHTML = "Memproses Roll Film... ⏳"; this.disabled = true;
-            let base64Image = canvas.toDataURL('image/jpeg', 0.5); 
+            let base64Image = canvas.toDataURL('image/jpeg', 0.9); 
             fetch('/api/cetak-foto', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: JSON.stringify({ nama: {!! json_encode(session('guest_name') ?? 'Tamu') !!}, gambar: base64Image }) })
             .then(async res => { const rawText = await res.text(); try { const data = JSON.parse(rawText); if (!res.ok) throw new Error((data && data.message) || "Koneksi gagal."); return data; } catch (err) { throw new Error("Server menolak! Coba perkecil ukuran atau muat ulang halaman."); } })
             .then(data => {
@@ -364,18 +359,16 @@
                     let namaAntrean = data.antrean || 'Tamu';
                     let textEl = document.getElementById('nomor-antrian-teks');
                     
-                    // Masukkan nama dan reset ukuran awal
                     textEl.innerText = namaAntrean; 
                     textEl.style.transform = 'scale(1)';
                     
                     document.getElementById('modal-antrian').classList.remove('hidden'); 
                     
-                    // JURUS AUTO-FIT 1 BARIS: Mengecilkan teks jika kepanjangan
                     setTimeout(() => {
                         let parentEl = textEl.parentElement;
                         if (textEl.scrollWidth > parentEl.clientWidth) {
                             let scaleRatio = parentEl.clientWidth / textEl.scrollWidth;
-                            textEl.style.transform = `scale(${scaleRatio - 0.05})`; // Dikurangi 0.05 agar tidak terlalu mepet tembok
+                            textEl.style.transform = `scale(${scaleRatio - 0.05})`; 
                         }
                     }, 50);
                     
