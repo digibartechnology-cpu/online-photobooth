@@ -45,7 +45,6 @@
             <div class="relative w-full max-w-3xl max-h-full aspect-[4/3] glass-panel rounded-[2rem] p-2 shadow-2xl flex items-center justify-center shrink-0 bg-black">
                 
                 <div class="relative w-full h-full rounded-[1.5rem] overflow-hidden flex items-center justify-center">
-                    <!-- Kembali menggunakan object-cover agar memenuhi bingkai 4:3 dengan sempurna -->
                     <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover"></video>
                     <div id="flash-overlay" class="absolute inset-0 bg-white z-40"></div>
                     <div id="countdown-display" class="absolute inset-0 z-30 flex items-center justify-center text-[8rem] md:text-[12rem] font-black text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.8)] hidden">3</div>
@@ -189,15 +188,49 @@
         
         getCameras();
 
+        // -------------------------------------------------------------
+        // FUNGSI CERDAS: HARDWARE FLASH (ANDROID) + SCREEN FLASH (IOS)
+        // -------------------------------------------------------------
+        async function toggleHardwareFlash(nyala) {
+            if (!isFlashEnabled) return;
+
+            let hardwareSuccess = false;
+            if (currentStream && currentStream.active) {
+                const track = currentStream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+                // Jika kamera mendukung senter (torch)
+                if (capabilities.torch) {
+                    try {
+                        await track.applyConstraints({ advanced: [{ torch: nyala }] });
+                        hardwareSuccess = true;
+                    } catch (err) {
+                        console.warn("Akses Hardware Flash ditolak:", err);
+                    }
+                }
+            }
+
+            // Fallback (Cadangan): Gunakan layar putih jika hardware tidak didukung (iOS)
+            if (!hardwareSuccess) {
+                if (nyala) {
+                    flash.classList.add('flash-active');
+                } else {
+                    flash.classList.remove('flash-active');
+                }
+            }
+        }
+
         async function triggerSnap() {
             if (isSnapping) return;
             isSnapping = true; snapBtn.disabled = true; snapBtn.classList.add('opacity-50');
 
             await runCountdown(3);
-            if (isFlashEnabled) flash.classList.add('flash-active');
             
+            // Nyalakan lampu flash cerdas (Hardware atau Layar)
+            await toggleHardwareFlash(true);
+            
+            // Beri jeda 300ms agar lampu menyala terang maksimal sebelum kamera dijepret
             setTimeout(() => {
-                // PAKSA FOTO MENJADI LANDSCAPE (4:3) 
                 const targetWidth = 1440;
                 const targetHeight = 1080;
                 canvas.width = targetWidth;
@@ -208,7 +241,6 @@
 
                 let drawWidth, drawHeight, startX, startY;
 
-                // Logika pemotongan (crop) area tengah agar proporsional
                 if (videoRatio > targetRatio) {
                     drawHeight = targetHeight;
                     drawWidth = video.videoWidth * (targetHeight / video.videoHeight);
@@ -221,7 +253,6 @@
                     startY = (targetHeight - drawHeight) / 2;
                 }
 
-                // Hasil akan selalu landscape sempurna
                 ctx.drawImage(video, startX, startY, drawWidth, drawHeight);
 
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
@@ -231,11 +262,12 @@
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }, body: JSON.stringify({ gambar: dataUrl })
                 }).catch(e => console.log(e));
 
-                if (isFlashEnabled) flash.classList.remove('flash-active');
+                // Matikan flash setelah foto diambil
+                toggleHardwareFlash(false);
+                
                 if (allPhotos.length > 0) finishBtn.classList.remove('hidden');
-
                 snapBtn.disabled = false; snapBtn.classList.remove('opacity-50'); isSnapping = false;
-            }, 50); 
+            }, 300); 
         }
 
         function runCountdown(seconds) {
