@@ -4,41 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Database Cetak | DigiBAR</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { blue: '#003eb3', hover: '#002e8a' } } } } }
+        tailwind.config = { 
+            theme: { 
+                extend: { 
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }, 
+                    colors: { 
+                        brand: { blue: '#003eb3', hover: '#002e8a' },
+                        slate: { 800: '#1e293b', 900: '#0f172a' }
+                    } 
+                } 
+            } 
+        }
     </script>
+    <style>
+        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-blue selection:text-white">
 
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-xl font-black tracking-tight text-brand-blue">DIGI<span class="text-slate-900">BAR</span></span>
-                <span class="text-slate-300 mx-2">|</span>
-                <span class="text-sm font-semibold text-slate-600">Antrean Cetak Mesin</span>
+    <!-- NAVBAR DISAMAKAN DENGAN HALAMAN FRAME -->
+    <nav class="glass-header border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-4">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-black tracking-tight text-brand-blue">DIGI<span class="text-slate-900">BAR</span></span>
+                    </div>
+                    <div class="hidden sm:block border-l-2 border-slate-200 pl-4 ml-2">
+                        <h1 class="text-sm font-bold text-slate-900 leading-tight">Antrean Cetak Mesin</h1>
+                        <p class="text-xs font-semibold text-brand-blue">Operational Dashboard</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <a href="/admin-home" class="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-4 py-2.5 rounded-xl transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        Tutup Antrean
+                    </a>
+                </div>
             </div>
-            <a href="/admin-home" class="text-sm font-semibold text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg transition">X Tutup</a>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-[fadeIn_0.4s_ease-out]">
         
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-slate-900">Antrean: {{ $event->nama_kegiatan }}</h2>
+        <div class="mb-8 border-b border-slate-200 pb-6">
+            <h2 class="text-3xl font-black text-slate-900 tracking-tight">Antrean: {{ $event->nama_kegiatan }}</h2>
+            <p class="text-sm text-slate-500 mt-1 font-medium">Pantau dan kelola antrean cetak foto mesin photobooth secara real-time.</p>
         </div>
 
         <!-- NAV TABS -->
-        <div class="border-b border-slate-200 mb-8 flex gap-4 md:gap-8 overflow-x-auto hide-scroll">
-            <button onclick="bukaTab(event, 'tab-list')" class="nav-btn active-tab border-b-2 border-brand-blue text-brand-blue font-bold py-4 text-sm hover:text-brand-hover transition whitespace-nowrap">
-                Belum Dicetak <span class="bg-blue-50 text-brand-blue rounded-full px-2 py-0.5 ml-1 text-xs border border-blue-100">{{ $list->count() }}</span>
+        <div class="mb-8 flex gap-2 md:gap-4 overflow-x-auto hide-scroll pb-2">
+            <button onclick="bukaTab(event, 'tab-list')" class="nav-btn active-tab flex items-center gap-2 bg-white border-2 border-brand-blue text-brand-blue font-bold py-3 px-6 rounded-xl text-sm transition-all whitespace-nowrap shadow-sm">
+                Belum Dicetak 
+                <span class="bg-brand-blue text-white rounded-md px-2 py-0.5 text-xs">{{ $list->count() }}</span>
             </button>
-            <button onclick="bukaTab(event, 'tab-ongoing')" class="nav-btn border-b-2 border-transparent text-slate-500 font-medium py-4 text-sm hover:text-slate-800 transition whitespace-nowrap">
-                Sedang Diproses <span class="bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 ml-1 text-xs">{{ $ongoing->count() }}</span>
+            <button onclick="bukaTab(event, 'tab-ongoing')" class="nav-btn flex items-center gap-2 bg-white border border-slate-200 text-slate-500 font-bold py-3 px-6 rounded-xl text-sm hover:border-slate-300 hover:text-slate-700 transition-all whitespace-nowrap shadow-sm">
+                Sedang Diproses 
+                <span class="bg-slate-100 text-slate-600 rounded-md px-2 py-0.5 text-xs">{{ $ongoing->count() }}</span>
             </button>
-            <button onclick="bukaTab(event, 'tab-done')" class="nav-btn border-b-2 border-transparent text-slate-500 font-medium py-4 text-sm hover:text-slate-800 transition whitespace-nowrap">
-                Selesai <span class="bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 ml-1 text-xs">{{ $done->count() }}</span>
+            <button onclick="bukaTab(event, 'tab-done')" class="nav-btn flex items-center gap-2 bg-white border border-slate-200 text-slate-500 font-bold py-3 px-6 rounded-xl text-sm hover:border-slate-300 hover:text-slate-700 transition-all whitespace-nowrap shadow-sm">
+                Selesai 
+                <span class="bg-slate-100 text-slate-600 rounded-md px-2 py-0.5 text-xs">{{ $done->count() }}</span>
             </button>
         </div>
 
@@ -47,30 +79,35 @@
             @if($list->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($list as $p): ?>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col h-full">
+                    <div class="bg-white p-5 rounded-[1.25rem] border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col h-full group">
                         
                         <!-- Area Gambar -->
-                        <div class="w-full bg-slate-100 rounded-xl mb-4 overflow-hidden border border-slate-200 flex items-center justify-center relative aspect-[3/4]">
-                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama hilang karena update server</div>'">
+                        <div class="w-full bg-slate-50 rounded-xl mb-5 overflow-hidden border border-slate-100 flex items-center justify-center relative aspect-[3/4] group-hover:border-brand-blue/30 transition-colors">
+                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1.5 drop-shadow-sm" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama terhapus sistem cloud</div>'">
                         </div>
                         
                         <!-- Area Nama Tamu -->
-                        <div class="mb-4 text-center mt-auto">
-                            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Cetak Atas Nama</span>
-                            <span class="block text-sm md:text-base font-black text-brand-blue truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
+                        <div class="mb-5 text-center mt-auto">
+                            <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1.5">Cetak Atas Nama</span>
+                            <span class="block text-lg font-black text-slate-800 truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
                                 {{ strtoupper($p->nama ?? 'TAMU') }}
                             </span>
                         </div>
 
                         <!-- Tombol -->
-                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/render-print/{{ $p->file_name }}')" class="block w-full text-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-xs py-3 rounded-lg transition cursor-pointer shrink-0 uppercase tracking-wide">
-                            🖨️ Proses Cetak
+                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/render-print/{{ $p->file_name }}')" class="w-full flex items-center justify-center gap-2 bg-brand-blue hover:bg-brand-hover text-white font-bold text-sm py-3.5 rounded-xl transition-all shadow-sm shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            Proses Cetak
                         </button>
                     </div>
                     <?php endforeach; ?>
                 </div>
             @else
-                <div class="text-center py-16 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-medium">Belum ada foto yang masuk antrean.</div>
+                <div class="flex flex-col items-center justify-center py-20 bg-white border border-dashed border-slate-300 rounded-3xl">
+                    <span class="text-4xl mb-4">🖨️</span>
+                    <h3 class="text-lg font-bold text-slate-700">Belum ada antrean cetak</h3>
+                    <p class="text-sm text-slate-500 mt-1">Foto yang dijepret tamu akan otomatis muncul di sini.</p>
+                </div>
             @endif
         </div>
 
@@ -79,35 +116,40 @@
             @if($ongoing->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($ongoing as $p): ?>
-                    <div class="bg-white p-4 rounded-2xl border border-blue-200 shadow-md hover:shadow-lg transition relative overflow-hidden flex flex-col h-full ring-2 ring-brand-blue ring-opacity-20">
-                        <div class="absolute top-0 left-0 w-full h-1.5 bg-brand-blue"></div>
+                    <div class="bg-white p-5 rounded-[1.25rem] border border-blue-200 shadow-md hover:shadow-lg transition-all relative overflow-hidden flex flex-col h-full ring-4 ring-brand-blue/10">
+                        <div class="absolute top-0 left-0 w-full h-1.5 bg-brand-blue animate-pulse"></div>
                         
                         <!-- Area Gambar -->
-                        <div class="w-full bg-slate-100 rounded-xl mt-2 mb-4 overflow-hidden border border-slate-200 flex items-center justify-center relative aspect-[3/4]">
-                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama hilang karena update server</div>'">
+                        <div class="w-full bg-slate-50 rounded-xl mt-2 mb-5 overflow-hidden border border-slate-100 flex items-center justify-center relative aspect-[3/4]">
+                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1.5 drop-shadow-sm" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama terhapus sistem cloud</div>'">
                         </div>
                         
                         <!-- Area Nama Tamu -->
-                        <div class="mb-4 text-center mt-auto">
-                            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Sedang Mencetak</span>
-                            <span class="block text-sm md:text-base font-black text-brand-blue truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
+                        <div class="mb-5 text-center mt-auto">
+                            <span class="block text-[10px] uppercase tracking-widest text-brand-blue font-bold mb-1.5 animate-pulse">Sedang Mencetak...</span>
+                            <span class="block text-lg font-black text-slate-800 truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
                                 {{ strtoupper($p->nama ?? 'TAMU') }}
                             </span>
                         </div>
 
                         <div class="flex flex-col gap-2 shrink-0">
-                            <a href="{{ route('admin.photo.update', [$p->id, 'completed']) }}" class="block w-full text-center bg-brand-blue hover:bg-brand-hover text-white font-bold text-xs py-3 rounded-lg transition shadow-sm uppercase tracking-wide">
-                                ✅ Selesai
+                            <a href="{{ route('admin.photo.update', [$p->id, 'completed']) }}" class="flex items-center justify-center gap-2 w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Selesai
                             </a>
-                            <a href="{{ route('admin.photo.update', [$p->id, 'pending']) }}" onclick="return confirm('Kertas macet atau Print gagal? Klik OK untuk mengembalikan foto ini ke antrean agar bisa diprint ulang.')" class="block w-full text-center bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[10px] py-2 rounded-lg transition uppercase tracking-wide">
-                                ⚠️ Ulangi
+                            <a href="{{ route('admin.photo.update', [$p->id, 'pending']) }}" onclick="return confirm('Kertas macet atau mesin error? Klik OK untuk mengembalikan foto ini ke antrean (Belum Dicetak) agar bisa diprint ulang.')" class="w-full text-center bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 font-bold text-xs py-2.5 rounded-xl transition-all">
+                                ⚠️ Ulangi Print
                             </a>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
             @else
-                <div class="text-center py-16 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-medium">Kosong. Mesin cetak sedang istirahat.</div>
+                <div class="flex flex-col items-center justify-center py-20 bg-white border border-dashed border-slate-300 rounded-3xl">
+                    <span class="text-4xl mb-4">💤</span>
+                    <h3 class="text-lg font-bold text-slate-700">Mesin sedang istirahat</h3>
+                    <p class="text-sm text-slate-500 mt-1">Tidak ada foto yang sedang dalam proses cetak.</p>
+                </div>
             @endif
         </div>
 
@@ -116,22 +158,22 @@
             @if($done->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($done as $p): ?>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 opacity-70 hover:opacity-100 grayscale-[20%] hover:grayscale-0 transition-all flex flex-col h-full">
+                    <div class="bg-white p-5 rounded-[1.25rem] border border-slate-200 opacity-80 hover:opacity-100 grayscale-[15%] hover:grayscale-0 transition-all flex flex-col h-full shadow-sm">
                         
                         <!-- Area Gambar -->
-                        <div class="w-full bg-slate-50 rounded-xl mb-4 overflow-hidden border border-slate-100 flex items-center justify-center relative aspect-[3/4]">
-                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama hilang</div>'">
+                        <div class="w-full bg-slate-50 rounded-xl mb-5 overflow-hidden border border-slate-100 flex items-center justify-center relative aspect-[3/4]">
+                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1.5" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama hilang</div>'">
                         </div>
                         
                         <!-- Area Nama Tamu -->
-                        <div class="mb-3 text-center mt-auto">
-                            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Milik</span>
+                        <div class="mb-4 text-center mt-auto">
+                            <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Milik</span>
                             <span class="block text-sm font-black text-slate-600 truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
                                 {{ strtoupper($p->nama ?? 'TAMU') }}
                             </span>
                         </div>
                         
-                        <div class="flex justify-center items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase tracking-wide bg-emerald-50 py-2 rounded-lg border border-emerald-100 shrink-0">
+                        <div class="flex justify-center items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase tracking-wider bg-emerald-50 py-2.5 rounded-xl border border-emerald-100 shrink-0">
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                             Telah Dicetak
                         </div>
@@ -139,7 +181,11 @@
                     <?php endforeach; ?>
                 </div>
             @else
-                <div class="text-center py-16 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-medium">Belum ada riwayat cetak selesai.</div>
+                <div class="flex flex-col items-center justify-center py-20 bg-white border border-dashed border-slate-300 rounded-3xl">
+                    <span class="text-4xl mb-4">🗂️</span>
+                    <h3 class="text-lg font-bold text-slate-700">Riwayat Cetak Kosong</h3>
+                    <p class="text-sm text-slate-500 mt-1">Belum ada foto yang diselesaikan.</p>
+                </div>
             @endif
         </div>
 
@@ -152,19 +198,27 @@
                 el.classList.remove('block');
             });
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('border-brand-blue', 'text-brand-blue', 'active-tab');
-                btn.classList.add('border-transparent', 'text-slate-500');
-                btn.querySelector('span').classList.replace('bg-blue-50', 'bg-slate-100');
-                btn.querySelector('span').classList.replace('text-brand-blue', 'text-slate-600');
-                btn.querySelector('span').classList.remove('border', 'border-blue-100');
+                // Reset semua tab ke gaya tidak aktif
+                btn.classList.remove('border-2', 'border-brand-blue', 'text-brand-blue', 'active-tab');
+                btn.classList.add('border', 'border-slate-200', 'text-slate-500');
+                
+                let span = btn.querySelector('span');
+                span.classList.remove('bg-brand-blue', 'text-white');
+                span.classList.add('bg-slate-100', 'text-slate-600');
             });
+            
+            // Tampilkan tab yang dipilih
             document.getElementById(tabName).classList.remove('hidden');
             document.getElementById(tabName).classList.add('block');
-            evt.currentTarget.classList.remove('border-transparent', 'text-slate-500');
-            evt.currentTarget.classList.add('border-brand-blue', 'text-brand-blue', 'active-tab');
-            evt.currentTarget.querySelector('span').classList.replace('bg-slate-100', 'bg-blue-50');
-            evt.currentTarget.querySelector('span').classList.replace('text-slate-600', 'text-brand-blue');
-            evt.currentTarget.querySelector('span').classList.add('border', 'border-blue-100');
+            
+            // Atur gaya tab aktif
+            let activeBtn = evt.currentTarget;
+            activeBtn.classList.remove('border', 'border-slate-200', 'text-slate-500');
+            activeBtn.classList.add('border-2', 'border-brand-blue', 'text-brand-blue', 'active-tab');
+            
+            let activeSpan = activeBtn.querySelector('span');
+            activeSpan.classList.remove('bg-slate-100', 'text-slate-600');
+            activeSpan.classList.add('bg-brand-blue', 'text-white');
         }
 
         // FUNGSI PRINT DENGAN FORCE PAPER SIZE 5x15 CM (4R Photostrip)
