@@ -194,7 +194,6 @@
             <h2 class="text-2xl font-black tracking-tight mb-2">Berhasil!</h2>
             <p class="text-slate-400 text-sm mb-6">Foto Anda telah tersimpan dan siap dicetak.</p>
             
-            <!-- PERUBAHAN: Teks menjadi 'Cetak Atas Nama' dan tanpa '#', diberi class line-clamp -->
             <div class="bg-black/40 border border-white/10 rounded-2xl p-6 mb-6">
                 <span class="text-xs uppercase tracking-widest text-slate-400 font-bold block mb-1">Cetak Atas Nama</span>
                 <span id="nomor-antrian-teks" class="text-4xl md:text-5xl font-black text-blue-500 tracking-wider line-clamp-1">--</span>
@@ -270,7 +269,11 @@
                 let slot = slots[i]; let foto = fotoWajah[i]; if (!foto || !foto.width) continue; 
                 let percentX = parseFloat(slot.x) || 0; let percentY = parseFloat(slot.y) || 0; let percentW = parseFloat(slot.w) || 100; let percentH = parseFloat(slot.h) || 100;
                 let sx = (percentX / 100) * canvas.width; let sy = (percentY / 100) * canvas.height; let sw = (percentW / 100) * canvas.width; let sh = (percentH / 100) * canvas.height;
-                let scale = Math.max(sw / foto.width, sh / foto.height); let dw = foto.width * scale; let dh = foto.height * scale; let dx = sx + (sw - dw) / 2; let dy = sy + (sh - dh) * 0.25;
+                let scale = Math.max(sw / foto.width, sh / foto.height); 
+                let dw = foto.width * scale; 
+                let dh = foto.height * scale; 
+                let dx = sx + (sw - dw) / 2; 
+                let dy = sy + (sh - dh) * 0.25;
                 
                 ctx.save(); ctx.beginPath(); ctx.rect(sx, sy, sw, sh); ctx.clip();
                 if (filterAktif === 'retro-warm') { ctx.filter = 'contrast(85%) saturate(110%) brightness(105%) sepia(20%)'; } else if (filterAktif === 'retro-cool') { ctx.filter = 'contrast(90%) saturate(105%) brightness(110%) sepia(5%)'; } else if (filterAktif === 'gritty') { ctx.filter = 'contrast(80%) saturate(90%) brightness(100%) sepia(40%)'; } else if (filterAktif === 'cinematic') { ctx.filter = 'contrast(120%) saturate(80%) brightness(95%) sepia(10%)'; } else if (filterAktif === 'vibrant') { ctx.filter = 'contrast(125%) saturate(130%) brightness(105%)'; } else if (filterAktif === 'bw-classic') { ctx.filter = 'grayscale(100%) contrast(120%) brightness(105%)'; } else if (filterAktif === 'sepia') { ctx.filter = 'sepia(100%) contrast(90%) brightness(95%)'; } else if (filterAktif === 'pastel') { ctx.filter = 'contrast(90%) saturate(85%) brightness(115%) sepia(5%) hue-rotate(-10deg)'; } else if (filterAktif === 'moody') { ctx.filter = 'contrast(130%) saturate(70%) brightness(80%)'; } else { ctx.filter = 'none'; }
@@ -308,14 +311,19 @@
         function setTransform() { gambarZoom.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`; }
         function resetZoomState() { scale = 1; posX = 0; posY = 0; setTransform(); zoomContainer.classList.remove('zoom-active'); }
         canvas.addEventListener('click', function() { if(!bingkaiAktif) return; gambarZoom.src = canvas.toDataURL('image/jpeg', 1.0); modalZoom.classList.remove('hidden'); resetZoomState(); hintAnim.classList.remove('opacity-0'); hintAnim.classList.add('opacity-100'); clearTimeout(hintTimeout); hintTimeout = setTimeout(() => { hintAnim.classList.remove('opacity-100'); hintAnim.classList.add('opacity-0'); }, 3000); });
+        
         function onPointerDown(e) { if (e.target.id === 'btn-tutup-zoom') return; isDragging = true; let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX; let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY; initialClickX = clientX; initialClickY = clientY; startX = clientX - posX; startY = clientY - posY; if(scale > 1) zoomContainer.classList.add('zoom-active'); }
         function onPointerMove(e) { if (!isDragging) return; e.preventDefault(); let clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX; let clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY; if (scale > 1) { posX = clientX - startX; posY = clientY - startY; setTransform(); } }
         function onPointerUp(e) { if (!isDragging) return; isDragging = false; zoomContainer.classList.remove('zoom-active'); let clientX = e.type.includes('mouse') ? e.clientX : (e.changedTouches ? e.changedTouches[0].clientX : initialClickX); let clientY = e.type.includes('mouse') ? e.clientY : (e.changedTouches ? e.changedTouches[0].clientY : initialClickY); let moveDistance = Math.hypot(clientX - initialClickX, clientY - initialClickY); if (moveDistance < 5 && e.target === zoomContainer) { modalZoom.classList.add('hidden'); resetZoomState(); hintAnim.classList.add('opacity-0'); } }
+        
         zoomContainer.addEventListener('mousedown', onPointerDown); window.addEventListener('mousemove', onPointerMove, {passive: false}); window.addEventListener('mouseup', onPointerUp); zoomContainer.addEventListener('touchstart', onPointerDown, {passive: false}); zoomContainer.addEventListener('touchmove', onPointerMove, {passive: false}); zoomContainer.addEventListener('touchend', onPointerUp);
         document.getElementById('btn-tutup-zoom').addEventListener('click', function() { modalZoom.classList.add('hidden'); resetZoomState(); hintAnim.classList.add('opacity-0'); });
         zoomContainer.addEventListener('wheel', (e) => { e.preventDefault(); const delta = Math.sign(e.deltaY) * -0.2; scale += delta; scale = Math.min(Math.max(1, scale), 6); if (scale === 1) { posX = 0; posY = 0; } setTransform(); }, {passive: false});
-        let initialPinchDistance = null; zoomContainer.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { isDragging = false; initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); } }, {passive: false});
-        zoomContainer.addEventListener('touchmove', (e) => { if (e.touches.length === 2 && initialPinchDistance) { e.preventDefault(); const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); const distanceChange = currentDistance - initialPinchDistance; scale += distanceChange * 0.01; scale = Math.min(Math.max(1, scale), 6); initialPinchDistance = currentDistance; if (scale === 1) { posX = 0; posY = 0; } setTransform(); } }, {passive: false}); zoomContainer.addEventListener('touchend', (e) => { if (e.touches.length < 2) initialPinchDistance = null; });
+        
+        let initialPinchDistance = null; 
+        zoomContainer.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { isDragging = false; initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); } }, {passive: false});
+        zoomContainer.addEventListener('touchmove', (e) => { if (e.touches.length === 2 && initialPinchDistance) { e.preventDefault(); const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); const distanceChange = currentDistance - initialPinchDistance; scale += distanceChange * 0.01; scale = Math.min(Math.max(1, scale), 6); initialPinchDistance = currentDistance; if (scale === 1) { posX = 0; posY = 0; } setTransform(); } }, {passive: false}); 
+        zoomContainer.addEventListener('touchend', (e) => { if (e.touches.length < 2) initialPinchDistance = null; });
 
         document.getElementById('btn-ulang').addEventListener('click', function() { localStorage.removeItem('digibar_raw_photos'); localStorage.removeItem('digibar_all_photos'); window.location.href = '/studio'; });
         document.getElementById('btn-ganti').addEventListener('click', function() { window.location.href = '/studio?reselect=true'; });
@@ -325,7 +333,8 @@
             var duration = 3000; var animationEnd = Date.now() + duration; var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
             function randomInRange(min, max) { return Math.random() * (max - min) + min; }
             var interval = setInterval(function() {
-                var timeLeft = animationEnd - Date.now(); if (timeLeft <= 0) return clearInterval(interval); var particleCount = 50 * (timeLeft / duration);
+                var timeLeft = animationEnd - Date.now(); if (timeLeft <= 0) return clearInterval(interval); 
+                var particleCount = 50 * (timeLeft / duration);
                 confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
                 confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
             }, 250);
@@ -344,7 +353,6 @@
                 if(data && data.status === 'success') {
                     localStorage.removeItem('digibar_raw_photos'); localStorage.removeItem('digibar_all_photos');
                     
-                    // PERUBAHAN: Menampilkan nama tamu tanpa '#'
                     let namaAntrean = data.antrean || 'Tamu';
                     document.getElementById('nomor-antrian-teks').innerText = namaAntrean; 
                     
