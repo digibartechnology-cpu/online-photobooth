@@ -32,7 +32,8 @@ class PhotoController extends Controller
             $photo = Photo::create([
                 'file_name' => $namaFile,
                 'status' => 'pending',
-                'event_id' => $eventId 
+                'event_id' => $eventId,
+                'nama' => strtoupper($request->nama) 
             ]);
 
             $token = session('active_token');

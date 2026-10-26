@@ -39,7 +39,7 @@
                         <!-- Gambar Foto -->
                         <div class="aspect-[4/3] bg-black overflow-hidden relative">
                             <!-- PERBAIKAN: Menambahkan path 'storage/' agar sesuai dengan lokasi simpan di Controller -->
-                            <img src="{{ asset('storage/' . $photo->file_name) }}" onerror="this.src='{{ asset($photo->file_name) }}'" alt="Mentahan" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity">
+                            <img src="/render-mentahan/{{ $photo->file_name }}" onerror="this.outerHTML='<div class=\'flex items-center justify-center h-full w-full bg-slate-900 text-xs text-slate-500 text-center p-4\'>Foto terhapus di server cloud</div>'" alt="Mentahan" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity">
                         </div>
 
                         <!-- Info & Tombol Download -->
@@ -48,8 +48,8 @@
                                 {{ $photo->created_at->format('H:i:s') }} WIB
                             </div>
                             
-                            <!-- PERBAIKAN: Menambahkan path 'storage/' pada link download -->
-                            <a href="{{ asset('storage/' . $photo->file_name) }}" download="DigiBAR_{{ $event->nama_kegiatan }}_{{ $photo->id }}.jpg" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors cursor-pointer" title="Download Foto Ini">
+                            <!-- PERBAIKAN: Menggunakan jalur bypass untuk link download -->
+                            <a href="/render-mentahan/{{ $photo->file_name }}" download="DigiBAR_{{ $event->nama_kegiatan }}_{{ $photo->id }}.jpg" class="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition-colors cursor-pointer" title="Download Foto Ini">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
                                     <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>

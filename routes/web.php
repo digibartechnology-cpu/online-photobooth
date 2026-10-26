@@ -22,6 +22,18 @@ Route::get('/render-frame/{filename}', function ($filename) {
     abort(404);
 });
 
+// Bypass untuk Foto Mentahan Studio
+Route::get('/render-mentahan/{filename}', function ($filename) {
+    // Bersihkan teks 'mentahan/' karena ikut tersimpan di database
+    $filename = str_replace('mentahan/', '', $filename);
+    
+    $path = storage_path('app/public/mentahan/' . $filename);
+    if (file_exists($path)) {
+        return response()->file($path);
+    }
+    abort(404);
+})->where('filename', '.*');
+
 // Bypass untuk Foto Antrean Cetak
 Route::get('/render-print/{filename}', function ($filename) {
     $path = storage_path('app/public/ready_to_print/' . $filename);
