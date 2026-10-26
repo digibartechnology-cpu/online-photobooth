@@ -46,10 +46,10 @@
                 </h3>
                 <div class="flex overflow-x-auto gap-4 pb-2 hide-scroll">
                     <?php if (count($frames) > 0): ?>
-                        <?php foreach ($frames as$frame): ?>
+                        <?php foreach ($frames as $frame): ?>
                             <?php
-                                $layout =$frame->layout_data;
-                                if(empty($layout))$layout = [['x'=>5,'y'=>5,'w'=>90,'h'=>90]];
+                                $layout = $frame->layout_data;
+                                if(empty($layout)) $layout = [['x'=>5,'y'=>5,'w'=>90,'h'=>90]];
                                 $encodedLayout = base64_encode(is_string($layout) ? $layout : json_encode($layout));
                             ?>
                             <button type="button" 
@@ -77,51 +77,78 @@
                         <div class="text-xs font-black leading-tight mb-1.5 text-white">Original</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Warna asli sensor kamera yang jujur dan natural.</div>
                     </button>
+                    
+                    @if(optional($setting)->retro_warm_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="retro-warm">
                         <div class="text-2xl mb-1.5">☀️</div>
                         <div class="text-xs font-black text-amber-400 leading-tight mb-1.5">Retro Warm</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Kekuningan hangat, wajah glowing layaknya golden hour.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->retro_cool_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="retro-cool">
                         <div class="text-2xl mb-1.5">❄️</div>
                         <div class="text-xs font-black text-teal-400 leading-tight mb-1.5">Classic Cool</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Rona kebiruan sejuk. Nostalgia ala majalah tahun 90-an.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->cinematic_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="cinematic">
                         <div class="text-2xl mb-1.5">🎬</div>
                         <div class="text-xs font-black text-emerald-400 leading-tight mb-1.5">Cinematic</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Warna diredupkan ciptakan kesan dramatis bioskop.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->vibrant_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="vibrant">
                         <div class="text-2xl mb-1.5">💎</div>
                         <div class="text-xs font-black text-blue-400 leading-tight mb-1.5">Ultra Clear</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Paling terang, tajam, dan warna-warni super jernih.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->gritty_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="gritty">
                         <div class="text-2xl mb-1.5">🎞️</div>
                         <div class="text-xs font-black text-rose-400 leading-tight mb-1.5">Gritty Vintage</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Bintik kasar (grain) & kilatan cahaya oranye retro.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->bw_classic_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="bw-classic">
                         <div class="text-2xl mb-1.5">🖤</div>
                         <div class="text-xs font-black text-slate-300 leading-tight mb-1.5">Mono Classic</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Hitam putih kontras tinggi. Elegan dan artistik.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->sepia_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="sepia">
                         <div class="text-2xl mb-1.5">🤎</div>
                         <div class="text-xs font-black text-orange-300 leading-tight mb-1.5">Sepia Dream</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Nuansa cokelat pudar layaknya foto antik jadul.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->pastel_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="pastel">
                         <div class="text-2xl mb-1.5">🌸</div>
                         <div class="text-xs font-black text-pink-400 leading-tight mb-1.5">Soft Pastel</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Cerah dengan sentuhan pink lembut. Mulus ala Korea.</div>
                     </button>
+                    @endif
+
+                    @if(optional($setting)->moody_active)
                     <button type="button" class="btn-filter p-3 rounded-2xl border border-white/10 hover:border-blue-500/40 text-center bg-white/5 transition-all focus:outline-none flex flex-col justify-start h-full" data-filter="moody">
                         <div class="text-2xl mb-1.5">🌑</div>
                         <div class="text-xs font-black text-indigo-400 leading-tight mb-1.5">Moody Dark</div>
                         <div class="text-[10px] text-slate-200 font-medium leading-snug">Kontras tajam & bayangan pekat untuk gaya cool.</div>
                     </button>
+                    @endif
                 </div>
             </div>
 
@@ -166,10 +193,13 @@
             <div class="w-20 h-20 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 border border-blue-600/30">🎉</div>
             <h2 class="text-2xl font-black tracking-tight mb-2">Berhasil!</h2>
             <p class="text-slate-400 text-sm mb-6">Foto Anda telah tersimpan dan siap dicetak.</p>
+            
+            <!-- PERUBAHAN: Teks menjadi 'Cetak Atas Nama' dan tanpa '#', diberi class line-clamp -->
             <div class="bg-black/40 border border-white/10 rounded-2xl p-6 mb-6">
-                <span class="text-xs uppercase tracking-widest text-slate-400 font-bold block mb-1">Nomor Antrean Anda</span>
-                <span id="nomor-antrian-teks" class="text-6xl font-black text-blue-500 tracking-wider">#--</span>
+                <span class="text-xs uppercase tracking-widest text-slate-400 font-bold block mb-1">Cetak Atas Nama</span>
+                <span id="nomor-antrian-teks" class="text-4xl md:text-5xl font-black text-blue-500 tracking-wider line-clamp-1">--</span>
             </div>
+            
             <button type="button" id="btn-tutup-modal" class="w-full bg-[#003eb3] hover:bg-[#002e8a] text-white font-black py-4 rounded-2xl text-base shadow-lg transition-all cursor-pointer">Selesai & Kembali ke Beranda</button>
         </div>
     </div>
@@ -192,7 +222,6 @@
         const mentah = localStorage.getItem('digibar_raw_photos');
         if (mentah) { try { let arr = JSON.parse(mentah); if (Array.isArray(arr)) { arr.forEach(function(b64) { let img = new Image(); img.src = b64; fotoWajah.push(img); }); } } catch(e) {} }
 
-        // MENGATASI BUG HANG/BLANK: Membuat efek stempel/pattern (Hanya digambar sekali)
         let noiseCanvasPattern = null;
         function getNoisePattern(ctxTarget) {
             if (!noiseCanvasPattern) {
@@ -215,13 +244,13 @@
             ctxTarget.save(); ctxTarget.globalCompositeOperation = "color";
             if (tipe === 'retro-warm') { ctxTarget.fillStyle = "rgba(230, 180, 100, 0.20)"; } else if (tipe === 'retro-cool') { ctxTarget.fillStyle = "rgba(100, 180, 150, 0.15)"; } else if (tipe === 'gritty') { ctxTarget.fillStyle = "rgba(255, 120, 50, 0.25)";  } else if (tipe === 'pastel') { ctxTarget.fillStyle = "rgba(255, 180, 200, 0.15)"; } else if (tipe === 'moody') { ctxTarget.fillStyle = "rgba(20, 40, 60, 0.25)"; } else if (tipe === 'sepia') { ctxTarget.fillStyle = "rgba(180, 130, 70, 0.20)"; }
             ctxTarget.fillRect(x, y, w, h); ctxTarget.restore();
+            
             if (tipe === 'retro-warm' || tipe === 'gritty') {
                 ctxTarget.save(); let gradient = ctxTarget.createLinearGradient(x, y, x + (w * 0.5), y + (h * 0.5));
                 if (tipe === 'retro-warm') { gradient.addColorStop(0, "rgba(255, 180, 50, 0.15)"); gradient.addColorStop(1, "rgba(255, 255, 255, 0)"); } else { gradient.addColorStop(0, "rgba(255, 80, 0, 0.3)"); gradient.addColorStop(0.5, "rgba(255, 150, 0, 0.1)"); gradient.addColorStop(1, "rgba(255, 255, 255, 0)"); }
                 ctxTarget.globalCompositeOperation = "screen"; ctxTarget.fillStyle = gradient; ctxTarget.fillRect(x, y, w, h); ctxTarget.restore();
             }
             
-            // Penggunaan Stempel Pattern (Sangat Ringan di CPU)
             if (['retro-warm', 'retro-cool', 'gritty', 'bw-classic', 'sepia'].includes(tipe)) {
                 ctxTarget.save(); 
                 ctxTarget.globalCompositeOperation = "overlay"; 
@@ -242,8 +271,10 @@
                 let percentX = parseFloat(slot.x) || 0; let percentY = parseFloat(slot.y) || 0; let percentW = parseFloat(slot.w) || 100; let percentH = parseFloat(slot.h) || 100;
                 let sx = (percentX / 100) * canvas.width; let sy = (percentY / 100) * canvas.height; let sw = (percentW / 100) * canvas.width; let sh = (percentH / 100) * canvas.height;
                 let scale = Math.max(sw / foto.width, sh / foto.height); let dw = foto.width * scale; let dh = foto.height * scale; let dx = sx + (sw - dw) / 2; let dy = sy + (sh - dh) * 0.25;
+                
                 ctx.save(); ctx.beginPath(); ctx.rect(sx, sy, sw, sh); ctx.clip();
                 if (filterAktif === 'retro-warm') { ctx.filter = 'contrast(85%) saturate(110%) brightness(105%) sepia(20%)'; } else if (filterAktif === 'retro-cool') { ctx.filter = 'contrast(90%) saturate(105%) brightness(110%) sepia(5%)'; } else if (filterAktif === 'gritty') { ctx.filter = 'contrast(80%) saturate(90%) brightness(100%) sepia(40%)'; } else if (filterAktif === 'cinematic') { ctx.filter = 'contrast(120%) saturate(80%) brightness(95%) sepia(10%)'; } else if (filterAktif === 'vibrant') { ctx.filter = 'contrast(125%) saturate(130%) brightness(105%)'; } else if (filterAktif === 'bw-classic') { ctx.filter = 'grayscale(100%) contrast(120%) brightness(105%)'; } else if (filterAktif === 'sepia') { ctx.filter = 'sepia(100%) contrast(90%) brightness(95%)'; } else if (filterAktif === 'pastel') { ctx.filter = 'contrast(90%) saturate(85%) brightness(115%) sepia(5%) hue-rotate(-10deg)'; } else if (filterAktif === 'moody') { ctx.filter = 'contrast(130%) saturate(70%) brightness(80%)'; } else { ctx.filter = 'none'; }
+                
                 ctx.drawImage(foto, dx, dy, dw, dh); ctx.restore(); terapkanPresetAnalog(ctx, sx, sy, sw, sh, filterAktif);
             }
             ctx.filter = 'none'; ctx.drawImage(bingkaiAktif, 0, 0, canvas.width, canvas.height);
@@ -266,11 +297,8 @@
                 tombolFilter.forEach(b => { b.classList.remove('active', 'border-blue-500'); b.classList.add('border-white/10'); b.style.backgroundColor = 'rgba(255,255,255,0.05)'; });
                 this.classList.add('active', 'border-blue-500'); this.classList.remove('border-white/10'); this.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
                 
-                // Mencegah Hang: Beri jeda kecil agar tombol menyala dulu sebelum gambar dirender
                 if(bingkaiAktif) {
-                    requestAnimationFrame(() => {
-                        setTimeout(() => { gambarKanvas(); }, 10);
-                    });
+                    requestAnimationFrame(() => { setTimeout(() => { gambarKanvas(); }, 10); });
                 }
             });
         });
@@ -315,8 +343,12 @@
             .then(data => {
                 if(data && data.status === 'success') {
                     localStorage.removeItem('digibar_raw_photos'); localStorage.removeItem('digibar_all_photos');
-                    let nomorAntrean = data.queue_number || data.antrean || data.id || '1';
-                    document.getElementById('nomor-antrian-teks').innerText = '#' + nomorAntrean; document.getElementById('modal-antrian').classList.remove('hidden'); fireConfetti();
+                    
+                    // PERUBAHAN: Menampilkan nama tamu tanpa '#'
+                    let namaAntrean = data.antrean || 'Tamu';
+                    document.getElementById('nomor-antrian-teks').innerText = namaAntrean; 
+                    
+                    document.getElementById('modal-antrian').classList.remove('hidden'); fireConfetti();
                 } else { showError(data ? data.message : 'Terjadi kesalahan sistem.'); }
             }).catch(err => { showError(err.message || "Gagal terhubung ke server."); });
         });

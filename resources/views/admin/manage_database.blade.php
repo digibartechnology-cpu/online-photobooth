@@ -7,15 +7,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { maroon: { 600: '#7b1113' } } } } }
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { blue: '#003eb3', hover: '#002e8a' } } } } }
     </script>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased">
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-brand-blue selection:text-white">
 
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
             <div class="flex items-center gap-2">
-                <span class="text-xl font-black tracking-tight text-maroon-600">DIGI<span class="text-slate-900">BAR</span></span>
+                <span class="text-xl font-black tracking-tight text-brand-blue">DIGI<span class="text-slate-900">BAR</span></span>
                 <span class="text-slate-300 mx-2">|</span>
                 <span class="text-sm font-semibold text-slate-600">Antrean Cetak Mesin</span>
             </div>
@@ -31,8 +31,8 @@
 
         <!-- NAV TABS -->
         <div class="border-b border-slate-200 mb-8 flex gap-8">
-            <button onclick="bukaTab(event, 'tab-list')" class="nav-btn active-tab border-b-2 border-maroon-600 text-maroon-600 font-bold py-4 text-sm hover:text-maroon-700 transition">
-                Pending <span class="bg-maroon-50 text-maroon-700 rounded-full px-2 py-0.5 ml-1 text-xs border border-maroon-100">{{ $list->count() }}</span>
+            <button onclick="bukaTab(event, 'tab-list')" class="nav-btn active-tab border-b-2 border-brand-blue text-brand-blue font-bold py-4 text-sm hover:text-brand-hover transition">
+                Pending <span class="bg-blue-50 text-brand-blue rounded-full px-2 py-0.5 ml-1 text-xs border border-blue-100">{{ $list->count() }}</span>
             </button>
             <button onclick="bukaTab(event, 'tab-ongoing')" class="nav-btn border-b-2 border-transparent text-slate-500 font-medium py-4 text-sm hover:text-slate-800 transition">
                 Sedang Diproses <span class="bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 ml-1 text-xs">{{ $ongoing->count() }}</span>
@@ -48,18 +48,18 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($list as $p): ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                        <!-- PERBAIKAN: Menggunakan fungsi asset() -->
-                        <img src="{{ asset('storage/ready_to_print/' . $p->file_name) }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
+                        <!-- PERBAIKAN: Menggunakan fungsi jalur bypass /render-print/ -->
+                        <img src="/render-print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
                         
                         <div class="flex justify-between items-center mb-3">
                             <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
-                            <div class="text-[10px] font-bold text-maroon-700 bg-maroon-50 px-2 py-1 rounded border border-maroon-100 truncate max-w-[80px]" title="{{ $p->nama ?? 'Tamu' }}">
+                            <div class="text-[10px] font-bold text-brand-blue bg-blue-50 px-2 py-1 rounded border border-blue-100 truncate max-w-[80px]" title="{{ $p->nama ?? 'Tamu' }}">
                                 {{ $p->nama ?? 'Tamu' }}
                             </div>
                         </div>
 
-                        <!-- PERBAIKAN: Menggunakan fungsi asset() di parameter cetak -->
-                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '{{ asset('storage/ready_to_print/' . $p->file_name) }}')" class="block w-full text-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-semibold text-xs py-2.5 rounded-lg transition cursor-pointer">
+                        <!-- PERBAIKAN: Jalur bypass untuk parameter cetak iframe -->
+                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/render-print/{{ $p->file_name }}')" class="block w-full text-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-semibold text-xs py-2.5 rounded-lg transition cursor-pointer">
                             Proses Cetak →
                         </button>
                     </div>
@@ -76,24 +76,22 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($ongoing as $p): ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col">
-                        <div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
-                        <!-- PERBAIKAN: Menggunakan fungsi asset() -->
-                        <img src="{{ asset('storage/ready_to_print/' . $p->file_name) }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-brand-blue"></div>
+                        
+                        <!-- PERBAIKAN -->
+                        <img src="/render-print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
                         
                         <div class="flex justify-between items-center mb-4">
                             <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
-                            <div class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100 truncate max-w-[80px]" title="{{ $p->nama ?? 'Tamu' }}">
+                            <div class="text-[10px] font-bold text-brand-blue bg-blue-50 px-2 py-1 rounded border border-blue-100 truncate max-w-[80px]" title="{{ $p->nama ?? 'Tamu' }}">
                                 {{ $p->nama ?? 'Tamu' }}
                             </div>
                         </div>
 
-                        <!-- AREA TOMBOL BARU -->
                         <div class="flex flex-col gap-2 mt-auto">
-                            <!-- Tombol Berhasil -->
-                            <a href="{{ route('admin.photo.update', [$p->id, 'completed']) }}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg transition shadow-sm">
+                            <a href="{{ route('admin.photo.update', [$p->id, 'completed']) }}" class="block w-full text-center bg-brand-blue hover:bg-brand-hover text-white font-semibold text-xs py-2.5 rounded-lg transition shadow-sm">
                                 🖨 Selesai & Keluar
                             </a>
-                            <!-- Tombol Gagal / Error -->
                             <a href="{{ route('admin.photo.update', [$p->id, 'pending']) }}" onclick="return confirm('Kertas macet atau Print gagal? Klik OK untuk mengembalikan foto ini ke antrean PENDING agar bisa diprint ulang.')" class="block w-full text-center bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-semibold text-[11px] py-2.5 rounded-lg transition">
                                 ⚠️ Gagal (Print Ulang)
                             </a>
@@ -112,8 +110,9 @@
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($done as $p): ?>
                     <div class="bg-white p-4 rounded-2xl border border-slate-100 opacity-60 grayscale-[30%]">
-                        <!-- PERBAIKAN: Menggunakan fungsi asset() -->
-                        <img src="{{ asset('storage/ready_to_print/' . $p->file_name) }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain">
+                        
+                        <!-- PERBAIKAN -->
+                        <img src="/render-print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain">
                         
                         <div class="flex justify-between items-center mb-1">
                             <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
@@ -143,19 +142,19 @@
                 el.classList.remove('block');
             });
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('border-maroon-600', 'text-maroon-600', 'active-tab');
+                btn.classList.remove('border-brand-blue', 'text-brand-blue', 'active-tab');
                 btn.classList.add('border-transparent', 'text-slate-500');
-                btn.querySelector('span').classList.replace('bg-maroon-50', 'bg-slate-100');
-                btn.querySelector('span').classList.replace('text-maroon-700', 'text-slate-600');
-                btn.querySelector('span').classList.remove('border', 'border-maroon-100');
+                btn.querySelector('span').classList.replace('bg-blue-50', 'bg-slate-100');
+                btn.querySelector('span').classList.replace('text-brand-blue', 'text-slate-600');
+                btn.querySelector('span').classList.remove('border', 'border-blue-100');
             });
             document.getElementById(tabName).classList.remove('hidden');
             document.getElementById(tabName).classList.add('block');
             evt.currentTarget.classList.remove('border-transparent', 'text-slate-500');
-            evt.currentTarget.classList.add('border-maroon-600', 'text-maroon-600', 'active-tab');
-            evt.currentTarget.querySelector('span').classList.replace('bg-slate-100', 'bg-maroon-50');
-            evt.currentTarget.querySelector('span').classList.replace('text-slate-600', 'text-maroon-700');
-            evt.currentTarget.querySelector('span').classList.add('border', 'border-maroon-100');
+            evt.currentTarget.classList.add('border-brand-blue', 'text-brand-blue', 'active-tab');
+            evt.currentTarget.querySelector('span').classList.replace('bg-slate-100', 'bg-blue-50');
+            evt.currentTarget.querySelector('span').classList.replace('text-slate-600', 'text-brand-blue');
+            evt.currentTarget.querySelector('span').classList.add('border', 'border-blue-100');
         }
 
         // FUNGSI PRINT DENGAN FORCE PAPER SIZE 5x15 CM (4R Photostrip)

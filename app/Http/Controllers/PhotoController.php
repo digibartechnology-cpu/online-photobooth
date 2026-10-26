@@ -25,7 +25,6 @@ class PhotoController extends Controller
 
             $namaFile = 'cetak_' . time() . '_' . Str::slug($request->nama) . '.jpg';
             
-            // SUDAH BENAR: Menggunakan Storage::disk('public')
             Storage::disk('public')->put('ready_to_print/' . $namaFile, $dataGambarDecoded);
 
             $eventId = session('event_id');
@@ -44,12 +43,13 @@ class PhotoController extends Controller
                 session()->forget('event_id'); 
             }
 
-            $nomorAntrean = str_pad($photo->id, 3, '0', STR_PAD_LEFT);
+            // PERUBAHAN: Menggunakan nama tamu (huruf kapital) sebagai antrean
+            $namaTamu = strtoupper($request->nama);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Foto berhasil masuk antrean!',
-                'antrean' => $nomorAntrean
+                'antrean' => $namaTamu
             ]);
 
         } catch (\Exception $e) {
@@ -60,9 +60,6 @@ class PhotoController extends Controller
         }
     }
 
-    // ==================================================
-    // FUNGSI BARU: MENYIMPAN FOTO UNLIMITED KE FOLDER SERVER
-    // ==================================================
     public function simpanMentahan(Request $request)
     {
         try {
@@ -75,7 +72,6 @@ class PhotoController extends Controller
                 
                 $fileName = 'mentahan_' . time() . '_' . uniqid() . '.jpg';
 
-                // PERBAIKAN: Simpan ke Storage Public agar aman dari hapus otomatis cloud
                 Storage::disk('public')->put('mentahan/' . $fileName, $image_base64);
 
                 Photo::create([

@@ -10,10 +10,21 @@ use App\Models\User;
 use App\Models\Event; 
 
 // ==========================================
-// 0. JALUR BYPASS GAMBAR (SOLUSI FRAME RUSAK/HILANG DI CLOUD)
+// 0. JALUR BYPASS GAMBAR (SOLUSI GAMBAR RUSAK/HILANG DI CLOUD)
 // ==========================================
+
+// Bypass untuk Frame
 Route::get('/render-frame/{filename}', function ($filename) {
     $path = storage_path('app/public/templates/' . $filename);
+    if (file_exists($path)) {
+        return response()->file($path);
+    }
+    abort(404);
+});
+
+// Bypass untuk Foto Antrean Cetak
+Route::get('/render-print/{filename}', function ($filename) {
+    $path = storage_path('app/public/ready_to_print/' . $filename);
     if (file_exists($path)) {
         return response()->file($path);
     }
