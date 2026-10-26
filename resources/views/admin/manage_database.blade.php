@@ -30,13 +30,14 @@
     <!-- NAVBAR DISAMAKAN DENGAN HALAMAN FRAME -->
     <nav class="glass-header border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
+            <div class="flex justify-between h-16">
+                <!-- Brand & Logo Gambar (Sudah Dibesarkan) -->
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 flex items-center">
-                        <span class="text-2xl font-black tracking-tight text-brand-blue">DIGI<span class="text-slate-900">BAR</span></span>
+                        <img src="{{ asset('Images/Logo_DigiBAR.png') }}" alt="Logo DigiBAR" class="h-10 md:h-12 object-contain drop-shadow-sm">
                     </div>
                     <div class="hidden sm:block border-l-2 border-slate-200 pl-4 ml-2">
-                        <h1 class="text-sm font-bold text-slate-900 leading-tight">Antrean Cetak Mesin</h1>
+                        <h1 class="text-sm font-bold text-slate-900 leading-tight">Business Digital Agency</h1>
                         <p class="text-xs font-semibold text-brand-blue">Operational Dashboard</p>
                     </div>
                 </div>
