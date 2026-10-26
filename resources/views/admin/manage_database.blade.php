@@ -30,14 +30,14 @@
         </div>
 
         <!-- NAV TABS -->
-        <div class="border-b border-slate-200 mb-8 flex gap-8">
-            <button onclick="bukaTab(event, 'tab-list')" class="nav-btn active-tab border-b-2 border-brand-blue text-brand-blue font-bold py-4 text-sm hover:text-brand-hover transition">
-                Pending <span class="bg-blue-50 text-brand-blue rounded-full px-2 py-0.5 ml-1 text-xs border border-blue-100">{{ $list->count() }}</span>
+        <div class="border-b border-slate-200 mb-8 flex gap-4 md:gap-8 overflow-x-auto hide-scroll">
+            <button onclick="bukaTab(event, 'tab-list')" class="nav-btn active-tab border-b-2 border-brand-blue text-brand-blue font-bold py-4 text-sm hover:text-brand-hover transition whitespace-nowrap">
+                Belum Dicetak <span class="bg-blue-50 text-brand-blue rounded-full px-2 py-0.5 ml-1 text-xs border border-blue-100">{{ $list->count() }}</span>
             </button>
-            <button onclick="bukaTab(event, 'tab-ongoing')" class="nav-btn border-b-2 border-transparent text-slate-500 font-medium py-4 text-sm hover:text-slate-800 transition">
+            <button onclick="bukaTab(event, 'tab-ongoing')" class="nav-btn border-b-2 border-transparent text-slate-500 font-medium py-4 text-sm hover:text-slate-800 transition whitespace-nowrap">
                 Sedang Diproses <span class="bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 ml-1 text-xs">{{ $ongoing->count() }}</span>
             </button>
-            <button onclick="bukaTab(event, 'tab-done')" class="nav-btn border-b-2 border-transparent text-slate-500 font-medium py-4 text-sm hover:text-slate-800 transition">
+            <button onclick="bukaTab(event, 'tab-done')" class="nav-btn border-b-2 border-transparent text-slate-500 font-medium py-4 text-sm hover:text-slate-800 transition whitespace-nowrap">
                 Selesai <span class="bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 ml-1 text-xs">{{ $done->count() }}</span>
             </button>
         </div>
@@ -47,20 +47,24 @@
             @if($list->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($list as $p): ?>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
-                        <!-- PERBAIKAN: Menggunakan fungsi jalur bypass /render-print/ -->
-                        <img src="/render-print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col h-full">
                         
-                        <div class="flex justify-between items-center mb-3">
-                            <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
-                            <div class="text-[10px] font-bold text-brand-blue bg-blue-50 px-2 py-1 rounded border border-blue-100 truncate max-w-[80px]" title="{{ $p->nama ?? 'Tamu' }}">
-                                {{ $p->nama ?? 'Tamu' }}
-                            </div>
+                        <!-- Area Gambar -->
+                        <div class="w-full bg-slate-100 rounded-xl mb-4 overflow-hidden border border-slate-200 flex items-center justify-center relative aspect-[3/4]">
+                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama hilang karena update server</div>'">
+                        </div>
+                        
+                        <!-- Area Nama Tamu -->
+                        <div class="mb-4 text-center mt-auto">
+                            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Cetak Atas Nama</span>
+                            <span class="block text-sm md:text-base font-black text-brand-blue truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
+                                {{ strtoupper($p->nama ?? 'TAMU') }}
+                            </span>
                         </div>
 
-                        <!-- PERBAIKAN: Jalur bypass untuk parameter cetak iframe -->
-                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/render-print/{{ $p->file_name }}')" class="block w-full text-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-semibold text-xs py-2.5 rounded-lg transition cursor-pointer">
-                            Proses Cetak →
+                        <!-- Tombol -->
+                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/render-print/{{ $p->file_name }}')" class="block w-full text-center bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 font-bold text-xs py-3 rounded-lg transition cursor-pointer shrink-0 uppercase tracking-wide">
+                            🖨️ Proses Cetak
                         </button>
                     </div>
                     <?php endforeach; ?>
@@ -75,25 +79,28 @@
             @if($ongoing->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($ongoing as $p): ?>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition relative overflow-hidden flex flex-col">
-                        <div class="absolute top-0 left-0 w-full h-1 bg-brand-blue"></div>
+                    <div class="bg-white p-4 rounded-2xl border border-blue-200 shadow-md hover:shadow-lg transition relative overflow-hidden flex flex-col h-full ring-2 ring-brand-blue ring-opacity-20">
+                        <div class="absolute top-0 left-0 w-full h-1.5 bg-brand-blue"></div>
                         
-                        <!-- PERBAIKAN -->
-                        <img src="/render-print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain border border-slate-100">
+                        <!-- Area Gambar -->
+                        <div class="w-full bg-slate-100 rounded-xl mt-2 mb-4 overflow-hidden border border-slate-200 flex items-center justify-center relative aspect-[3/4]">
+                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama hilang karena update server</div>'">
+                        </div>
                         
-                        <div class="flex justify-between items-center mb-4">
-                            <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
-                            <div class="text-[10px] font-bold text-brand-blue bg-blue-50 px-2 py-1 rounded border border-blue-100 truncate max-w-[80px]" title="{{ $p->nama ?? 'Tamu' }}">
-                                {{ $p->nama ?? 'Tamu' }}
-                            </div>
+                        <!-- Area Nama Tamu -->
+                        <div class="mb-4 text-center mt-auto">
+                            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Sedang Mencetak</span>
+                            <span class="block text-sm md:text-base font-black text-brand-blue truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
+                                {{ strtoupper($p->nama ?? 'TAMU') }}
+                            </span>
                         </div>
 
-                        <div class="flex flex-col gap-2 mt-auto">
-                            <a href="{{ route('admin.photo.update', [$p->id, 'completed']) }}" class="block w-full text-center bg-brand-blue hover:bg-brand-hover text-white font-semibold text-xs py-2.5 rounded-lg transition shadow-sm">
-                                🖨 Selesai & Keluar
+                        <div class="flex flex-col gap-2 shrink-0">
+                            <a href="{{ route('admin.photo.update', [$p->id, 'completed']) }}" class="block w-full text-center bg-brand-blue hover:bg-brand-hover text-white font-bold text-xs py-3 rounded-lg transition shadow-sm uppercase tracking-wide">
+                                ✅ Selesai
                             </a>
-                            <a href="{{ route('admin.photo.update', [$p->id, 'pending']) }}" onclick="return confirm('Kertas macet atau Print gagal? Klik OK untuk mengembalikan foto ini ke antrean PENDING agar bisa diprint ulang.')" class="block w-full text-center bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-semibold text-[11px] py-2.5 rounded-lg transition">
-                                ⚠️ Gagal (Print Ulang)
+                            <a href="{{ route('admin.photo.update', [$p->id, 'pending']) }}" onclick="return confirm('Kertas macet atau Print gagal? Klik OK untuk mengembalikan foto ini ke antrean agar bisa diprint ulang.')" class="block w-full text-center bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-[10px] py-2 rounded-lg transition uppercase tracking-wide">
+                                ⚠️ Ulangi
                             </a>
                         </div>
                     </div>
@@ -109,20 +116,23 @@
             @if($done->count() > 0)
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     <?php foreach($done as $p): ?>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 opacity-60 grayscale-[30%]">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 opacity-70 hover:opacity-100 grayscale-[20%] hover:grayscale-0 transition-all flex flex-col h-full">
                         
-                        <!-- PERBAIKAN -->
-                        <img src="/render-print/{{ $p->file_name }}" class="w-full rounded-xl mb-4 bg-slate-50 aspect-video object-contain">
-                        
-                        <div class="flex justify-between items-center mb-1">
-                            <div class="text-xs font-bold text-slate-400">#{{ str_pad($p->id, 4, '0', STR_PAD_LEFT) }}</div>
-                            <div class="text-[10px] font-bold text-slate-500 truncate max-w-[80px]" title="{{ $p->nama ?? 'Tamu' }}">
-                                {{ $p->nama ?? 'Tamu' }}
-                            </div>
+                        <!-- Area Gambar -->
+                        <div class="w-full bg-slate-50 rounded-xl mb-4 overflow-hidden border border-slate-100 flex items-center justify-center relative aspect-[3/4]">
+                            <img src="/render-print/{{ $p->file_name }}" class="absolute inset-0 w-full h-full object-contain p-1" onerror="this.outerHTML='<div class=\'text-[10px] text-slate-400 text-center px-4\'>Foto lama hilang</div>'">
                         </div>
                         
-                        <div class="flex items-center gap-2 text-emerald-600 font-bold text-xs mt-2">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <!-- Area Nama Tamu -->
+                        <div class="mb-3 text-center mt-auto">
+                            <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Milik</span>
+                            <span class="block text-sm font-black text-slate-600 truncate w-full px-2" title="{{ strtoupper($p->nama ?? 'TAMU') }}">
+                                {{ strtoupper($p->nama ?? 'TAMU') }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-center items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase tracking-wide bg-emerald-50 py-2 rounded-lg border border-emerald-100 shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                             Telah Dicetak
                         </div>
                     </div>
@@ -189,7 +199,7 @@
                         </style>
                     </head>
                     <body>
-                        <img src="${imageUrl}" onload="eksekusiCetak()" />
+                        <img src="${imageUrl}" onload="eksekusiCetak()" onerror="alert('Gagal memuat foto untuk dicetak. Mungkin foto lama sudah terhapus.')" />
                         <script>
                             function eksekusiCetak() {
                                 window.print();
