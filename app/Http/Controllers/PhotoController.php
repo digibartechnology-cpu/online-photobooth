@@ -18,22 +18,35 @@ class PhotoController extends Controller
                 'gambar' => 'required|string', 
             ]);
 
+            // 1. Proses Gambar Utama (Cetak)
             $gambar = $request->gambar;
             $gambar = str_replace('data:image/jpeg;base64,', '', $gambar);
             $gambar = str_replace(' ', '+', $gambar);
             $dataGambarDecoded = base64_decode($gambar);
 
             $namaFile = 'cetak_' . time() . '_' . Str::slug($request->nama) . '.jpg';
-            
             Storage::disk('public')->put('ready_to_print/' . $namaFile, $dataGambarDecoded);
+
+            // 2. Proses Animasi GIF (Jika Ada)
+            $namaFileGif = null;
+            if ($request->has('gambar_gif') && !empty($request->gambar_gif)) {
+                $gambarGif = str_replace('data:image/gif;base64,', '', $request->gambar_gif);
+                $gambarGif = str_replace(' ', '+', $gambarGif);
+                $dataGifDecoded = base64_decode($gambarGif);
+                
+                $namaFileGif = 'gif_' . time() . '_' . Str::slug($request->nama) . '.gif';
+                Storage::disk('public')->put('ready_to_print/' . $namaFileGif, $dataGifDecoded);
+            }
 
             $eventId = session('event_id');
 
+            // 3. Simpan ke Database (Termasuk Kolom file_gif)
             $photo = Photo::create([
                 'file_name' => $namaFile,
-                'status' => 'pending',
-                'event_id' => $eventId,
-                'nama' => strtoupper($request->nama) 
+                'file_gif'  => $namaFileGif,
+                'status'    => 'pending',
+                'event_id'  => $eventId,
+                'nama'      => strtoupper($request->nama) 
             ]);
 
             $token = session('active_token');
@@ -43,7 +56,6 @@ class PhotoController extends Controller
                 session()->forget('event_id'); 
             }
 
-            // PERUBAHAN: Menggunakan nama tamu (huruf kapital) sebagai antrean
             $namaTamu = strtoupper($request->nama);
 
             return response()->json([
