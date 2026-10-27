@@ -31,7 +31,7 @@
     <nav class="glass-header border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <!-- Brand & Logo Gambar (Sudah Dibesarkan) -->
+                <!-- Brand & Logo Gambar -->
                 <div class="flex items-center gap-4">
                     <div class="flex-shrink-0 flex items-center">
                         <img src="{{ asset('Images/Logo_DigiBAR.png') }}" alt="Logo DigiBAR" class="h-10 md:h-12 object-contain drop-shadow-sm">
@@ -96,10 +96,19 @@
                         </div>
 
                         <!-- Tombol -->
-                        <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/render-print/{{ $p->file_name }}')" class="w-full flex items-center justify-center gap-2 bg-brand-blue hover:bg-brand-hover text-white font-bold text-sm py-3.5 rounded-xl transition-all shadow-sm shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                            Proses Cetak
-                        </button>
+                        <div class="flex flex-col gap-2 shrink-0">
+                            <button type="button" onclick="cetakFoto('{{ route('admin.photo.update', [$p->id, 'progress']) }}', '/render-print/{{ $p->file_name }}')" class="w-full flex items-center justify-center gap-2 bg-brand-blue hover:bg-brand-hover text-white font-bold text-sm py-3.5 rounded-xl transition-all shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                Proses Cetak
+                            </button>
+                            
+                            @if(!empty($p->file_gif))
+                            <a href="/render-print/{{ $p->file_gif }}" target="_blank" download class="w-full flex justify-center items-center gap-1.5 text-purple-600 font-bold text-[10px] uppercase tracking-wider bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl border border-purple-200 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Lihat & Unduh GIF
+                            </a>
+                            @endif
+                        </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -141,6 +150,13 @@
                             <a href="{{ route('admin.photo.update', [$p->id, 'pending']) }}" onclick="return confirm('Kertas macet atau mesin error? Klik OK untuk mengembalikan foto ini ke antrean (Belum Dicetak) agar bisa diprint ulang.')" class="w-full text-center bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 font-bold text-xs py-2.5 rounded-xl transition-all">
                                 ⚠️ Ulangi Print
                             </a>
+                            
+                            @if(!empty($p->file_gif))
+                            <a href="/render-print/{{ $p->file_gif }}" target="_blank" download class="mt-1 w-full flex justify-center items-center gap-1.5 text-purple-600 font-bold text-[10px] uppercase tracking-wider bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl border border-purple-200 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Lihat & Unduh GIF
+                            </a>
+                            @endif
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -174,9 +190,18 @@
                             </span>
                         </div>
                         
-                        <div class="flex justify-center items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase tracking-wider bg-emerald-50 py-2.5 rounded-xl border border-emerald-100 shrink-0">
-                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                            Telah Dicetak
+                        <div class="flex flex-col gap-2 shrink-0">
+                            <div class="flex justify-center items-center gap-1.5 text-emerald-600 font-bold text-[10px] uppercase tracking-wider bg-emerald-50 py-2.5 rounded-xl border border-emerald-100">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                Telah Dicetak
+                            </div>
+                            
+                            @if(!empty($p->file_gif))
+                            <a href="/render-print/{{ $p->file_gif }}" target="_blank" download class="w-full flex justify-center items-center gap-1.5 text-purple-600 font-bold text-[10px] uppercase tracking-wider bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl border border-purple-200 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Lihat & Unduh GIF
+                            </a>
+                            @endif
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -199,7 +224,6 @@
                 el.classList.remove('block');
             });
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                // Reset semua tab ke gaya tidak aktif
                 btn.classList.remove('border-2', 'border-brand-blue', 'text-brand-blue', 'active-tab');
                 btn.classList.add('border', 'border-slate-200', 'text-slate-500');
                 
@@ -208,11 +232,9 @@
                 span.classList.add('bg-slate-100', 'text-slate-600');
             });
             
-            // Tampilkan tab yang dipilih
             document.getElementById(tabName).classList.remove('hidden');
             document.getElementById(tabName).classList.add('block');
             
-            // Atur gaya tab aktif
             let activeBtn = evt.currentTarget;
             activeBtn.classList.remove('border', 'border-slate-200', 'text-slate-500');
             activeBtn.classList.add('border-2', 'border-brand-blue', 'text-brand-blue', 'active-tab');
@@ -222,7 +244,6 @@
             activeSpan.classList.add('bg-brand-blue', 'text-white');
         }
 
-        // FUNGSI PRINT DENGAN FORCE PAPER SIZE 5x15 CM (4R Photostrip)
         function cetakFoto(urlUpdate, imageUrl) {
             let iframe = document.createElement('iframe');
             iframe.style.display = 'none';

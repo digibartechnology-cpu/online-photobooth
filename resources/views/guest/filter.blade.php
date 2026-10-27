@@ -205,6 +205,11 @@
                 </div>
             </div>
             
+            <!-- 🌟 TOMBOL DOWNLOAD GIF UNTUK TAMU (Awalnya disembunyikan) -->
+            <button type="button" id="btn-unduh-gif-tamu" class="hidden w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-2xl text-sm md:text-base shadow-lg transition-all cursor-pointer mb-3">
+                ⬇️ Simpan Animasi GIF ke HP
+            </button>
+            
             <button type="button" id="btn-tutup-modal" class="w-full bg-[#003eb3] hover:bg-[#002e8a] text-white font-black py-4 rounded-2xl text-base shadow-lg transition-all cursor-pointer">Selesai & Kembali ke Beranda</button>
         </div>
     </div>
@@ -351,7 +356,7 @@
         document.getElementById('btn-tutup-error').addEventListener('click', function() { document.getElementById('modal-error').classList.add('hidden'); });
 
 
-        // 🌟 KODINGAN BARU: Fungsi Cetak dengan Render Animasi GIF
+        // 🌟 KODINGAN BARU: Fungsi Cetak dengan Render Animasi GIF & Tombol Unduh Tamu
         document.getElementById('btn-cetak').addEventListener('click', function() {
             if (!bingkaiAktif) return showError("Pilih bingkai terlebih dahulu!");
             this.innerHTML = "Memproses GIF & Mencetak... ⏳"; this.disabled = true;
@@ -408,6 +413,16 @@
                     'numFrames': arrMentah.length
                 }, function(obj) {
                     if(!obj.error) {
+                        // 🌟 KODINGAN BARU: Munculkan tombol download GIF untuk tamu
+                        let btnGifTamu = document.getElementById('btn-unduh-gif-tamu');
+                        btnGifTamu.classList.remove('hidden');
+                        btnGifTamu.onclick = function() {
+                            const link = document.createElement('a');
+                            link.download = 'DigiBAR_Animasi_' + Date.now() + '.gif';
+                            link.href = obj.image; // Base64 GIF dari gifshot
+                            link.click();
+                        };
+
                         kirimKeServer(obj.image);
                     } else {
                         // Kalau HP-nya kentang dan gagal render GIF, tetap paksa kirim foto cetaknya
