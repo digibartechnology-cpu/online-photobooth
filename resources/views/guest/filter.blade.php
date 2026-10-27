@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     
-    <!-- 🌟 KODINGAN BARU: Library Pembangkit Animasi GIF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -205,7 +204,7 @@
                 </div>
             </div>
             
-            <!-- 🌟 TOMBOL DOWNLOAD GIF UNTUK TAMU (Awalnya disembunyikan) -->
+            <!-- TOMBOL DOWNLOAD GIF UNTUK TAMU (Awalnya disembunyikan) -->
             <button type="button" id="btn-unduh-gif-tamu" class="hidden w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-2xl text-sm md:text-base shadow-lg transition-all cursor-pointer mb-3">
                 ⬇️ Simpan Animasi GIF ke HP
             </button>
@@ -356,7 +355,7 @@
         document.getElementById('btn-tutup-error').addEventListener('click', function() { document.getElementById('modal-error').classList.add('hidden'); });
 
 
-        // 🌟 KODINGAN BARU: Fungsi Cetak dengan Render Animasi GIF & Rotasi Bingkai
+        // 🌟 KODINGAN BARU: Fungsi Cetak dengan Render Animasi GIF & Rotasi Cerdas Auto-Scale
         document.getElementById('btn-cetak').addEventListener('click', function() {
             if (!bingkaiAktif) return showError("Pilih bingkai terlebih dahulu!");
             this.innerHTML = "Memproses Animasi & Mencetak... ⏳"; this.disabled = true;
@@ -397,10 +396,15 @@
             // Cek apakah ada minimal 2 foto agar bisa bertukar posisi animasi
             if(fotoWajah.length > 1 && typeof gifshot !== 'undefined') {
                 
-                // Buat kanvas bayangan (mini) agar proses pembuatan GIF tidak bikin HP ngelag
+                // 🌟 PERBAIKAN: Hitung dimensi GIF secara dinamis mengikuti rasio bingkai asli!
+                let gifW = 400; // Patokan lebar agar ukuran file GIF tetap ringan
+                let scaleRatio = gifW / canvas.width; 
+                let gifH = Math.round(canvas.height * scaleRatio); // Tinggi otomatis menyesuaikan bingkai
+
+                // Buat kanvas bayangan (mini) dengan ukuran proporsional
                 let tempCanvas = document.createElement('canvas');
-                tempCanvas.width = 400;  // 1/3 dari lebar asli (1200)
-                tempCanvas.height = 600; // 1/3 dari tinggi asli (1800)
+                tempCanvas.width = gifW;  
+                tempCanvas.height = gifH; 
                 let tCtx = tempCanvas.getContext('2d');
 
                 let gifFrames = [];
@@ -409,10 +413,11 @@
                 // Bikin frame animasi: Geser urutan foto, gambar di kanvas, simpan, ulang!
                 for(let i = 0; i < fotoWajah.length; i++) {
                     gambarKanvas(); // Gambar kanvas utama (lengkap bingkai & filter)
-                    tCtx.drawImage(canvas, 0, 0, 1200, 1800, 0, 0, 400, 600); // Perkecil ke kanvas mini
-                    gifFrames.push(tempCanvas.toDataURL('image/jpeg', 0.7)); // Simpan ke frame GIF
+                    // Pindahkan gambar dari kanvas besar ke kanvas mini tanpa merusak aspek rasio
+                    tCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, gifW, gifH); 
+                    gifFrames.push(tempCanvas.toDataURL('image/jpeg', 0.7)); // Simpan ke array
                     
-                    // Putar posisi: Pindahkan foto pertama ke urutan paling belakang
+                    // Putar posisi: Pindahkan foto wajah pertama ke urutan paling belakang
                     fotoWajah.push(fotoWajah.shift());
                 }
 
@@ -420,11 +425,11 @@
                 fotoWajah = [...originalOrder];
                 gambarKanvas();
 
-                // Rakit GIF dari kanvas-kanvas yang sudah dibingkai tadi
+                // Rakit GIF dari kumpulan kanvas tadi
                 gifshot.createGIF({
                     'images': gifFrames,
-                    'gifWidth': 400,
-                    'gifHeight': 600, // Rasio 2:3 yang sempurna, anti gepeng!
+                    'gifWidth': gifW,
+                    'gifHeight': gifH, // Menggunakan tinggi yang sudah dihitung otomatis
                     'interval': 0.6, // Jeda perputaran foto (0.6 detik)
                     'numFrames': gifFrames.length
                 }, function(obj) {
