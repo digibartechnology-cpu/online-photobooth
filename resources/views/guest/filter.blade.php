@@ -356,20 +356,13 @@
         document.getElementById('btn-tutup-error').addEventListener('click', function() { document.getElementById('modal-error').classList.add('hidden'); });
 
 
-        // 🌟 KODINGAN BARU: Fungsi Cetak dengan Render Animasi GIF & Tombol Unduh Tamu
+        // 🌟 KODINGAN BARU: Fungsi Cetak dengan Render Animasi GIF & Rotasi Bingkai
         document.getElementById('btn-cetak').addEventListener('click', function() {
             if (!bingkaiAktif) return showError("Pilih bingkai terlebih dahulu!");
-            this.innerHTML = "Memproses GIF & Mencetak... ⏳"; this.disabled = true;
+            this.innerHTML = "Memproses Animasi & Mencetak... ⏳"; this.disabled = true;
             
             let base64Image = canvas.toDataURL('image/jpeg', 0.75); 
             
-            // Ambil koleksi foto wajah mentah dari penyimpanan lokal HP
-            let arrMentah = [];
-            const dataMentah = localStorage.getItem('digibar_raw_photos');
-            if (dataMentah) {
-                try { arrMentah = JSON.parse(dataMentah); } catch(e) {}
-            }
-
             // Fungsi inti untuk mengirim ke server
             function kirimKeServer(base64Gif) {
                 fetch('/api/cetak-foto', { 
@@ -378,19 +371,17 @@
                     body: JSON.stringify({ 
                         nama: {!! json_encode(session('guest_name') ?? 'Tamu') !!}, 
                         gambar: base64Image,
-                        gambar_gif: base64Gif // Kirim GIF kalau ada
+                        gambar_gif: base64Gif 
                     }) 
                 })
-                .then(async res => { const rawText = await res.text(); try { const data = JSON.parse(rawText); if (!res.ok) throw new Error((data && data.message) || "Koneksi gagal."); return data; } catch (err) { throw new Error("Server menolak! Coba perkecil ukuran atau muat ulang halaman."); } })
+                .then(async res => { const rawText = await res.text(); try { const data = JSON.parse(rawText); if (!res.ok) throw new Error((data && data.message) || "Koneksi gagal."); return data; } catch (err) { throw new Error("Server menolak! Coba muat ulang."); } })
                 .then(data => {
                     if(data && data.status === 'success') {
                         localStorage.removeItem('digibar_raw_photos'); localStorage.removeItem('digibar_all_photos');
                         let namaAntrean = data.antrean || 'Tamu';
                         let textEl = document.getElementById('nomor-antrian-teks');
-                        textEl.innerText = namaAntrean; 
-                        textEl.style.transform = 'scale(1)';
+                        textEl.innerText = namaAntrean; textEl.style.transform = 'scale(1)';
                         document.getElementById('modal-antrian').classList.remove('hidden'); 
-                        
                         setTimeout(() => {
                             let parentEl = textEl.parentElement;
                             if (textEl.scrollWidth > parentEl.clientWidth) {
@@ -403,29 +394,51 @@
                 }).catch(err => { showError(err.message || "Gagal terhubung ke server."); });
             }
 
-            // Kalau ada foto mentah dan script Gifshot berhasil dimuat, rakit GIF-nya!
-            if(arrMentah.length > 0 && typeof gifshot !== 'undefined') {
+            // Cek apakah ada minimal 2 foto agar bisa bertukar posisi animasi
+            if(fotoWajah.length > 1 && typeof gifshot !== 'undefined') {
+                
+                // Buat kanvas bayangan (mini) agar proses pembuatan GIF tidak bikin HP ngelag
+                let tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 400;  // 1/3 dari lebar asli (1200)
+                tempCanvas.height = 600; // 1/3 dari tinggi asli (1800)
+                let tCtx = tempCanvas.getContext('2d');
+
+                let gifFrames = [];
+                let originalOrder = [...fotoWajah];
+
+                // Bikin frame animasi: Geser urutan foto, gambar di kanvas, simpan, ulang!
+                for(let i = 0; i < fotoWajah.length; i++) {
+                    gambarKanvas(); // Gambar kanvas utama (lengkap bingkai & filter)
+                    tCtx.drawImage(canvas, 0, 0, 1200, 1800, 0, 0, 400, 600); // Perkecil ke kanvas mini
+                    gifFrames.push(tempCanvas.toDataURL('image/jpeg', 0.7)); // Simpan ke frame GIF
+                    
+                    // Putar posisi: Pindahkan foto pertama ke urutan paling belakang
+                    fotoWajah.push(fotoWajah.shift());
+                }
+
+                // Kembalikan urutan foto seperti semula agar layar tamu tidak berantakan
+                fotoWajah = [...originalOrder];
+                gambarKanvas();
+
+                // Rakit GIF dari kanvas-kanvas yang sudah dibingkai tadi
                 gifshot.createGIF({
-                    'images': arrMentah,
+                    'images': gifFrames,
                     'gifWidth': 400,
-                    'gifHeight': 533, // Rasio vertikal (3:4) yang umum
-                    'interval': 0.4, // Jeda kedip 0.4 detik (keren untuk boomerang)
-                    'numFrames': arrMentah.length
+                    'gifHeight': 600, // Rasio 2:3 yang sempurna, anti gepeng!
+                    'interval': 0.6, // Jeda perputaran foto (0.6 detik)
+                    'numFrames': gifFrames.length
                 }, function(obj) {
                     if(!obj.error) {
-                        // 🌟 KODINGAN BARU: Munculkan tombol download GIF untuk tamu
                         let btnGifTamu = document.getElementById('btn-unduh-gif-tamu');
                         btnGifTamu.classList.remove('hidden');
                         btnGifTamu.onclick = function() {
                             const link = document.createElement('a');
                             link.download = 'DigiBAR_Animasi_' + Date.now() + '.gif';
-                            link.href = obj.image; // Base64 GIF dari gifshot
+                            link.href = obj.image;
                             link.click();
                         };
-
                         kirimKeServer(obj.image);
                     } else {
-                        // Kalau HP-nya kentang dan gagal render GIF, tetap paksa kirim foto cetaknya
                         kirimKeServer(null); 
                     }
                 });
