@@ -349,7 +349,7 @@
         document.getElementById('btn-cetak').addEventListener('click', function() {
             if (!bingkaiAktif) return showError("Pilih bingkai terlebih dahulu!");
             this.innerHTML = "Memproses Roll Film... ⏳"; this.disabled = true;
-            let base64Image = canvas.toDataURL('image/jpeg', 0.9); 
+            let base64Image = canvas.toDataURL('image/jpeg', 0.75); 
             fetch('/api/cetak-foto', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: JSON.stringify({ nama: {!! json_encode(session('guest_name') ?? 'Tamu') !!}, gambar: base64Image }) })
             .then(async res => { const rawText = await res.text(); try { const data = JSON.parse(rawText); if (!res.ok) throw new Error((data && data.message) || "Koneksi gagal."); return data; } catch (err) { throw new Error("Server menolak! Coba perkecil ukuran atau muat ulang halaman."); } })
             .then(data => {
