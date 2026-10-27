@@ -7,6 +7,10 @@
     <title>Pilih Bingkai | DigiBAR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    
+    <!-- 🌟 KODINGAN BARU: Library Pembangkit Animasi GIF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #080808; color: white; touch-action: pan-y; }
@@ -192,7 +196,7 @@
         <div class="glass-panel w-full max-w-md p-8 rounded-3xl text-center border border-white/20 shadow-2xl scale-100 transition-transform">
             <div class="w-20 h-20 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 border border-blue-600/30">🎉</div>
             <h2 class="text-2xl font-black tracking-tight mb-2">Berhasil!</h2>
-            <p class="text-slate-400 text-sm mb-6">Foto Anda telah tersimpan dan siap dicetak.</p>
+            <p class="text-slate-400 text-sm mb-6">Foto & Animasi GIF tersimpan dan siap dicetak.</p>
             
             <div class="bg-black/40 border border-white/10 rounded-2xl p-6 mb-6 overflow-hidden w-full flex flex-col items-center">
                 <span class="text-xs uppercase tracking-widest text-slate-400 font-bold block mb-1">Cetak Atas Nama</span>
@@ -346,35 +350,73 @@
         function showError(message) { document.getElementById('error-teks').innerText = message; document.getElementById('modal-error').classList.remove('hidden'); document.getElementById('btn-cetak').innerHTML = "🖨️ Simpan & Cetak Foto"; document.getElementById('btn-cetak').disabled = false; }
         document.getElementById('btn-tutup-error').addEventListener('click', function() { document.getElementById('modal-error').classList.add('hidden'); });
 
+
+        // 🌟 KODINGAN BARU: Fungsi Cetak dengan Render Animasi GIF
         document.getElementById('btn-cetak').addEventListener('click', function() {
             if (!bingkaiAktif) return showError("Pilih bingkai terlebih dahulu!");
-            this.innerHTML = "Memproses Roll Film... ⏳"; this.disabled = true;
+            this.innerHTML = "Memproses GIF & Mencetak... ⏳"; this.disabled = true;
+            
             let base64Image = canvas.toDataURL('image/jpeg', 0.75); 
-            fetch('/api/cetak-foto', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: JSON.stringify({ nama: {!! json_encode(session('guest_name') ?? 'Tamu') !!}, gambar: base64Image }) })
-            .then(async res => { const rawText = await res.text(); try { const data = JSON.parse(rawText); if (!res.ok) throw new Error((data && data.message) || "Koneksi gagal."); return data; } catch (err) { throw new Error("Server menolak! Coba perkecil ukuran atau muat ulang halaman."); } })
-            .then(data => {
-                if(data && data.status === 'success') {
-                    localStorage.removeItem('digibar_raw_photos'); localStorage.removeItem('digibar_all_photos');
-                    
-                    let namaAntrean = data.antrean || 'Tamu';
-                    let textEl = document.getElementById('nomor-antrian-teks');
-                    
-                    textEl.innerText = namaAntrean; 
-                    textEl.style.transform = 'scale(1)';
-                    
-                    document.getElementById('modal-antrian').classList.remove('hidden'); 
-                    
-                    setTimeout(() => {
-                        let parentEl = textEl.parentElement;
-                        if (textEl.scrollWidth > parentEl.clientWidth) {
-                            let scaleRatio = parentEl.clientWidth / textEl.scrollWidth;
-                            textEl.style.transform = `scale(${scaleRatio - 0.05})`; 
-                        }
-                    }, 50);
-                    
-                    fireConfetti();
-                } else { showError(data ? data.message : 'Terjadi kesalahan sistem.'); }
-            }).catch(err => { showError(err.message || "Gagal terhubung ke server."); });
+            
+            // Ambil koleksi foto wajah mentah dari penyimpanan lokal HP
+            let arrMentah = [];
+            const dataMentah = localStorage.getItem('digibar_raw_photos');
+            if (dataMentah) {
+                try { arrMentah = JSON.parse(dataMentah); } catch(e) {}
+            }
+
+            // Fungsi inti untuk mengirim ke server
+            function kirimKeServer(base64Gif) {
+                fetch('/api/cetak-foto', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        nama: {!! json_encode(session('guest_name') ?? 'Tamu') !!}, 
+                        gambar: base64Image,
+                        gambar_gif: base64Gif // Kirim GIF kalau ada
+                    }) 
+                })
+                .then(async res => { const rawText = await res.text(); try { const data = JSON.parse(rawText); if (!res.ok) throw new Error((data && data.message) || "Koneksi gagal."); return data; } catch (err) { throw new Error("Server menolak! Coba perkecil ukuran atau muat ulang halaman."); } })
+                .then(data => {
+                    if(data && data.status === 'success') {
+                        localStorage.removeItem('digibar_raw_photos'); localStorage.removeItem('digibar_all_photos');
+                        let namaAntrean = data.antrean || 'Tamu';
+                        let textEl = document.getElementById('nomor-antrian-teks');
+                        textEl.innerText = namaAntrean; 
+                        textEl.style.transform = 'scale(1)';
+                        document.getElementById('modal-antrian').classList.remove('hidden'); 
+                        
+                        setTimeout(() => {
+                            let parentEl = textEl.parentElement;
+                            if (textEl.scrollWidth > parentEl.clientWidth) {
+                                let scaleRatio = parentEl.clientWidth / textEl.scrollWidth;
+                                textEl.style.transform = `scale(${scaleRatio - 0.05})`; 
+                            }
+                        }, 50);
+                        fireConfetti();
+                    } else { showError(data ? data.message : 'Terjadi kesalahan sistem.'); }
+                }).catch(err => { showError(err.message || "Gagal terhubung ke server."); });
+            }
+
+            // Kalau ada foto mentah dan script Gifshot berhasil dimuat, rakit GIF-nya!
+            if(arrMentah.length > 0 && typeof gifshot !== 'undefined') {
+                gifshot.createGIF({
+                    'images': arrMentah,
+                    'gifWidth': 400,
+                    'gifHeight': 533, // Rasio vertikal (3:4) yang umum
+                    'interval': 0.4, // Jeda kedip 0.4 detik (keren untuk boomerang)
+                    'numFrames': arrMentah.length
+                }, function(obj) {
+                    if(!obj.error) {
+                        kirimKeServer(obj.image);
+                    } else {
+                        // Kalau HP-nya kentang dan gagal render GIF, tetap paksa kirim foto cetaknya
+                        kirimKeServer(null); 
+                    }
+                });
+            } else {
+                kirimKeServer(null);
+            }
         });
 
         document.getElementById('btn-tutup-modal').addEventListener('click', function() { window.location.href = "/"; });
